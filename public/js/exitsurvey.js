@@ -1,0 +1,383 @@
+/**
+ * ExitSurvey - Smart Exit Survey for WooCommerce
+ * Front-end core: tracks browsing, detects exit intent, renders popup.
+ *
+ * @package ExitSurvey
+ */
+(function ($) {
+  'use strict';
+
+  /* =========================================================
+   * CONFIG & CONSTANTS
+   * ====================================================== */
+  const CFG = window.ExitSurveyConfig || {};
+  const STORAGE_KEY  = 'es_history';
+  const SESSION_KEY  = 'es_session_id';
+  const COOKIE_KEY   = 'es_shown';
+
+  /* =========================================================
+   * UTILITIES
+   * ====================================================== */
+  function generateId() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+
+  function setCookie(name, value, days) {
+    const d = new Date();
+    d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = name + '=' + value + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+  }
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : null;
+  }
+
+  function isMobile() {
+    return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  }
+
+  /* =========================================================
+   * SESSION
+   * ====================================================== */
+  function getSessionId() {
+    let sid = sessionStorage.getItem(SESSION_KEY);
+    if (!sid) {
+      sid = generateId();
+      sessionStorage.setItem(SESSION_KEY, sid);
+    }
+    return sid;
+  }
+
+  /* =========================================================
+   * BROWSING HISTORY TRACKER (localStorage)
+   * ====================================================== */
+  const History = {
+    MAX_ENTRIES: 20,
+
+    load() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    },
+
+    save(history) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      } catch (e) { /* localStorage full or unavailable */ }
+    },
+
+    record(ctx) {
+      const history = this.load();
+      history.push({
+        url:       ctx.pageUrl,
+        title:     ctx.pageTitle,
+        isCart:    ctx.isCart,
+        isCheckout:ctx.isCheckout,
+        isShop:    ctx.isShop,
+        isProduct: ctx.isProduct,
+        productId: ctx.productId,
+        ts:        Date.now(),
+      });
+      // Keep only latest MAX_ENTRIES
+      if (history.length > this.MAX_ENTRIES) {
+        history.splice(0, history.length - this.MAX_ENTRIES);
+      }
+      this.save(history);
+    },
+
+    /** Analyse history to determine best trigger type. */
+    resolveTrigger(cartCount) {
+      const history = this.load();
+
+      const visitedCheckout = history.some(h => h.isCheckout);
+      const visitedProduct  = history.some(h => h.isProduct);
+      const visitedShop     = history.some(h => h.isShop);
+
+      if (visitedCheckout) return 'checkout';
+      if (cartCount > 0)   return 'cart';
+      if (visitedProduct)  return 'product';
+      if (visitedShop)     return 'shop';
+      return 'general';
+    },
+
+    clear() {
+      localStorage.removeItem(STORAGE_KEY);
+    },
+
+    serialize() {
+      return JSON.stringify(this.load());
+    },
+  };
+
+  /* =========================================================
+   * POPUP UI
+   * ====================================================== */
+  const Popup = {
+    $overlay:   null,
+    $popup:     null,
+    shown:      false,
+    cartData:   null,
+    question:   null,
+    answer:     null,
+    triggerType: 'general',
+
+    init() {
+      this.$overlay = $('#es-overlay');
+      this.$popup   = $('#es-popup');
+
+      if (!this.$overlay.length) return;
+
+      // Apply branding colour
+      const color = CFG.brandingColor || '#7c3aed';
+      document.documentElement.style.setProperty('--es-brand', color);
+
+      // Populate static labels
+      $('#es-popup-title').text(CFG.popupTitle || 'Wait! Before you go...');
+      $('#es-popup-subtitle').text(CFG.popupSubtitle || '');
+      $('#es-submit-btn').text(CFG.submitLabel || 'Submit');
+      $('#es-skip-btn').text(CFG.skipLabel || 'No thanks');
+
+      // Events
+      $('#es-close-btn, #es-skip-btn').on('click', () => this.close());
+      this.$overlay.on('click', (e) => { if ($(e.target).is(this.$overlay)) this.close(); });
+      $('#es-submit-btn').on('click', () => this.submitAnswer());
+      $(document).on('keydown', (e) => { if (e.key === 'Escape' && this.shown) this.close(); });
+    },
+
+    open(triggerType, cartData) {
+      if (this.shown) return;
+      this.shown      = true;
+      this.triggerType = triggerType;
+      this.cartData   = cartData;
+
+      this.renderCart(cartData, triggerType);
+      this.renderQuestion(triggerType);
+
+      this.$overlay.fadeIn(200);
+      this.$popup.addClass('es-popup--enter');
+      $('body').addClass('es-no-scroll');
+      this.$popup.find('#es-submit-btn, #es-skip-btn, #es-close-btn').first().trigger('focus');
+    },
+
+    close() {
+      this.shown = false;
+      this.$overlay.fadeOut(200, () => {
+        $('body').removeClass('es-no-scroll');
+      });
+    },
+
+    renderCart(cartData, trigger) {
+      const $section = $('#es-cart-section');
+      if (!CFG.showCartItems || !cartData || !cartData.items || cartData.items.length === 0 || trigger === 'shop') {
+        $section.hide();
+        return;
+      }
+
+      const $items = $('#es-cart-items').empty();
+      cartData.items.forEach(item => {
+        $items.append(
+          $('<div>').addClass('es-cart-item').append(
+            $('<img>').attr({ src: item.image, alt: item.name }).addClass('es-cart-item__img'),
+            $('<div>').addClass('es-cart-item__info').append(
+              $('<div>').addClass('es-cart-item__name').text(item.name),
+              $('<div>').addClass('es-cart-item__meta').html('Qty: ' + item.qty + ' &middot; ' + item.price)
+            )
+          )
+        );
+      });
+
+      const $footer = $('#es-cart-footer').empty();
+      $footer.append(
+        $('<div>').addClass('es-cart-total').html('<span>Total:</span><strong>' + cartData.total + '</strong>'),
+        $('<a>').addClass('es-btn es-btn--cart').attr('href', cartData.checkout_url).text('✓ Complete Purchase')
+      );
+
+      $section.show();
+    },
+
+    renderQuestion(triggerType) {
+      const allQ   = CFG.questions || {};
+      let questions = allQ[triggerType] || allQ['general'] || [];
+
+      if (!questions.length) {
+        // No question — just show cart
+        $('#es-survey-section').hide();
+        return;
+      }
+
+      // Pick one question (first active)
+      this.question = questions[0];
+      this.answer   = null;
+
+      const $q    = $('#es-question-text').text(this.question.question_text);
+      const $opts = $('#es-options').empty();
+      const $txt  = $('#es-text-answer');
+
+      if (this.question.question_type === 'text') {
+        $opts.hide();
+        $txt.show().val('');
+      } else {
+        $txt.hide();
+        $opts.show();
+        const options = this.question.options || [];
+        options.forEach((opt, idx) => {
+          const id = 'es-opt-' + idx;
+          $opts.append(
+            $('<label>').addClass('es-option').attr('for', id).append(
+              $('<input>').attr({ type: 'radio', name: 'es_answer', id: id, value: opt }),
+              $('<span>').text(opt)
+            )
+          );
+        });
+      }
+    },
+
+    submitAnswer() {
+      let answer = '';
+
+      if (this.question && this.question.question_type === 'text') {
+        answer = $('#es-text-answer').val().trim();
+      } else {
+        answer = $('input[name="es_answer"]:checked').val() || '';
+      }
+
+      if (!answer) {
+        this.shake();
+        return;
+      }
+
+      this.answer = answer;
+      this.showLoading();
+
+      const payload = {
+        action:        'exitsurvey_submit',
+        nonce:         CFG.nonce,
+        session_id:    getSessionId(),
+        question_id:   this.question ? this.question.question_key : 'unknown',
+        question_text: this.question ? this.question.question_text : '',
+        answer:        answer,
+        trigger_type:  this.triggerType,
+        cart_value:    this.cartData ? this.cartData.raw_total : 0,
+        cart_items:    this.cartData ? JSON.stringify(this.cartData.items) : '',
+        page_history:  History.serialize(),
+      };
+
+      $.post(CFG.ajaxUrl, payload)
+        .always(() => {
+          this.hideLoading();
+          this.showThankYou();
+        });
+    },
+
+    showThankYou() {
+      $('#es-survey-section').hide();
+      $('#es-cart-section').hide();
+      const $ty = $('#es-thankyou').show();
+      $('#es-thankyou-msg').text(CFG.thankYouMsg || 'Thank you! 🙏');
+
+      if (this.cartData && this.cartData.checkout_url) {
+        $('#es-checkout-btn').attr('href', this.cartData.checkout_url).show();
+      }
+      // Auto-close after 4s
+      setTimeout(() => this.close(), 4000);
+    },
+
+    showLoading() { $('#es-loading').show(); },
+    hideLoading() { $('#es-loading').hide(); },
+
+    shake() {
+      this.$popup.addClass('es-popup--shake');
+      setTimeout(() => this.$popup.removeClass('es-popup--shake'), 400);
+    },
+  };
+
+  /* =========================================================
+   * EXIT INTENT DETECTOR
+   * ====================================================== */
+  const ExitIntent = {
+    triggered: false,
+    timer:     null,
+
+    init() {
+      // Mouse leave at top
+      $(document).on('mouseleave', (e) => {
+        if (e.clientY <= (CFG.sensitivity || 20)) {
+          this.schedule();
+        }
+      });
+
+      // Cancel if mouse comes back
+      $(document).on('mouseenter', () => {
+        clearTimeout(this.timer);
+      });
+
+      // Mobile: back button / page hide
+      if (CFG.showOnMobile && isMobile()) {
+        window.addEventListener('pagehide', () => this.fire(), { once: true });
+      }
+    },
+
+    schedule() {
+      if (this.triggered || Popup.shown) return;
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.fire(), CFG.delayMs || 500);
+    },
+
+    fire() {
+      if (this.triggered || Popup.shown) return;
+      if (getCookie(COOKIE_KEY)) return; // Already shown recently
+
+      this.triggered = true;
+      setCookie(COOKIE_KEY, '1', CFG.cookieDays || 3);
+
+      // Determine trigger from history
+      ES.launch();
+    },
+  };
+
+  /* =========================================================
+   * MAIN CONTROLLER
+   * ====================================================== */
+  const ES = {
+    init() {
+      if (!CFG.enabled) return;
+      if (isMobile() && !CFG.showOnMobile) return;
+
+      // Record current page visit
+      History.record(CFG.pageContext || {});
+
+      // Boot modules
+      Popup.init();
+      ExitIntent.init();
+    },
+
+    launch() {
+      // Fetch live cart from server, then determine trigger & open popup
+      $.post(CFG.ajaxUrl, { action: 'exitsurvey_get_cart', nonce: CFG.nonce }, (res) => {
+        const cartData   = res.success ? res.data : null;
+        const cartCount  = cartData ? (cartData.count || 0) : 0;
+        const trigger    = History.resolveTrigger(cartCount);
+
+        Popup.open(trigger, cartData);
+      }).fail(() => {
+        // Open with no cart data on network failure
+        const trigger = History.resolveTrigger(0);
+        Popup.open(trigger, null);
+      });
+    },
+  };
+
+  /* =========================================================
+   * BOOT
+   * ====================================================== */
+  $(function () {
+    ES.init();
+  });
+
+})(jQuery);

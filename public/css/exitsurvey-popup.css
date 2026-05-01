@@ -1,0 +1,286 @@
+/* ============================================================
+   ExitSurvey — Popup Styles
+   ============================================================ */
+:root {
+  --es-brand:   #7c3aed;
+  --es-brand-d: #6d28d9;
+  --es-radius:  18px;
+  --es-shadow:  0 25px 60px rgba(0,0,0,.22);
+  --es-anim:    .25s cubic-bezier(.4,0,.2,1);
+}
+
+/* No-scroll lock */
+body.es-no-scroll { overflow: hidden; }
+
+/* ---- Overlay ---- */
+.es-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,10,30,.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* ---- Popup card ---- */
+.es-popup {
+  position: relative;
+  background: #fff;
+  border-radius: var(--es-radius);
+  box-shadow: var(--es-shadow);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 0 0 28px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transform: scale(.94) translateY(12px);
+  opacity: 0;
+  transition: transform var(--es-anim), opacity var(--es-anim);
+}
+
+.es-popup--enter {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* Shake animation */
+@keyframes es-shake {
+  0%,100%{ transform: translateX(0); }
+  20%    { transform: translateX(-8px); }
+  40%    { transform: translateX(8px); }
+  60%    { transform: translateX(-5px); }
+  80%    { transform: translateX(5px); }
+}
+.es-popup--shake { animation: es-shake .35s ease; }
+
+/* ---- Close button ---- */
+.es-close {
+  position: absolute;
+  top: 14px; right: 16px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color .15s, background .15s;
+}
+.es-close:hover { color: #374151; background: #f3f4f6; }
+
+/* ---- Header ---- */
+.es-popup__header {
+  text-align: center;
+  padding: 32px 28px 20px;
+  background: linear-gradient(135deg, var(--es-brand) 0%, #a855f7 100%);
+  border-radius: var(--es-radius) var(--es-radius) 0 0;
+}
+.es-popup__icon { font-size: 40px; margin-bottom: 8px; }
+.es-popup__title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.25;
+}
+.es-popup__subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255,255,255,.8);
+}
+
+/* ---- Cart Section ---- */
+.es-cart-section {
+  margin: 20px 24px 0;
+  background: #f8f7ff;
+  border: 1px solid #ede9fe;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.es-cart-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+.es-cart-items { display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; }
+.es-cart-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+.es-cart-item__img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.es-cart-item__info { flex: 1; min-width: 0; }
+.es-cart-item__name { font-size: 13px; font-weight: 600; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.es-cart-item__meta { font-size: 12px; color: #6b7280; margin-top: 2px; }
+
+.es-cart-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; gap: 10px; flex-wrap: wrap; }
+.es-cart-total { font-size: 14px; color: #374151; display: flex; gap: 6px; align-items: center; }
+.es-cart-total strong { font-size: 18px; color: var(--es-brand); }
+.es-btn--cart {
+  display: inline-block;
+  padding: 8px 18px;
+  background: #059669;
+  color: #fff !important;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.es-btn--cart:hover { background: #047857; }
+
+/* ---- Survey Section ---- */
+.es-survey-section { padding: 20px 24px 0; }
+
+.es-question-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+
+/* Radio options */
+.es-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+.es-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  font-size: 14px;
+  color: #374151;
+}
+.es-option:hover { border-color: var(--es-brand); background: #f8f7ff; }
+.es-option input[type="radio"] {
+  accent-color: var(--es-brand);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.es-option:has(input:checked) {
+  border-color: var(--es-brand);
+  background: #f8f7ff;
+  font-weight: 600;
+}
+
+/* Open text */
+.es-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .15s;
+  margin-bottom: 16px;
+  color: #374151;
+}
+.es-textarea:focus { border-color: var(--es-brand); }
+
+/* ---- Action Buttons ---- */
+.es-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.es-btn {
+  display: block;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  transition: background .15s, transform .1s, opacity .15s;
+  text-decoration: none;
+  font-family: inherit;
+}
+.es-btn:active { transform: scale(.98); }
+
+.es-btn--primary {
+  background: var(--es-brand);
+  color: #fff;
+}
+.es-btn--primary:hover { background: var(--es-brand-d); }
+
+.es-btn--ghost {
+  background: transparent;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px;
+}
+.es-btn--ghost:hover { color: #374151; }
+
+/* ---- Thank You ---- */
+.es-thankyou { padding: 32px 24px; text-align: center; }
+.es-thankyou__icon { font-size: 56px; margin-bottom: 12px; }
+.es-thankyou__msg  { font-size: 18px; font-weight: 700; color: #1e1b4b; margin: 0 0 20px; }
+
+/* ---- Loading ---- */
+.es-loading {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--es-radius);
+}
+@keyframes es-spin { to { transform: rotate(360deg); } }
+.es-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: var(--es-brand);
+  border-radius: 50%;
+  animation: es-spin .7s linear infinite;
+}
+
+/* ---- Scrollbar (Webkit) ---- */
+.es-popup::-webkit-scrollbar { width: 6px; }
+.es-popup::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+.es-cart-items::-webkit-scrollbar { width: 4px; }
+.es-cart-items::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+  .es-popup { border-radius: 14px; }
+  .es-popup__title { font-size: 18px; }
+  .es-popup__header { padding: 24px 20px 16px; }
+  .es-survey-section { padding: 16px 16px 0; }
+  .es-cart-section { margin: 16px 16px 0; }
+}
