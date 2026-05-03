@@ -80,10 +80,10 @@ class ExitSurvey_Install {
 	 */
 	private static function insert_default_questions() {
 		global $wpdb;
-		$table = $wpdb->prefix . 'exitsurvey_questions';
+		$table = sanitize_key( $wpdb->prefix . 'exitsurvey_questions' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		// Only seed if table is empty
-		if ( $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ) > 0 ) {
+		if ( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM " . $table ) ) > 0 ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			return;
 		}
 

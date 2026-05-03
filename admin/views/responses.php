@@ -12,6 +12,7 @@
 	<!-- Filters -->
 	<form method="get" class="es-filter-bar">
 		<input type="hidden" name="page" value="exitsurvey-responses">
+		<?php wp_nonce_field( 'exitsurvey_filter', 'es_nonce' ); ?>
 		<select name="trigger">
 			<option value=""><?php echo esc_html__( 'All Triggers', 'exitsurvey' ); ?></option>
 			<?php foreach ( [ 'cart', 'checkout', 'product', 'shop', 'general' ] as $t ) : ?>
@@ -23,7 +24,12 @@
 		<?php if ( $filter['trigger_type'] || $filter['search'] ) : ?>
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=exitsurvey-responses' ) ); ?>" class="button"><?php echo esc_html__( 'Clear', 'exitsurvey' ); ?></a>
 		<?php endif; ?>
-		<span class="es-total"><?php printf( esc_html__( '%d responses', 'exitsurvey' ), $data['total'] ); ?></span>
+		<span class="es-total">
+			<?php
+			/* translators: %d: number of responses */
+			printf( esc_html__( '%d responses', 'exitsurvey' ), (int) $data['total'] );
+			?>
+		</span>
 	</form>
 
 	<?php if ( $data['rows'] ) : ?>
@@ -40,16 +46,16 @@
 				</tr>
 			</thead>
 			<tbody>
-			<?php foreach ( $data['rows'] as $row ) : ?>
+			<?php foreach ( $data['rows'] as $es_row ) : ?>
 				<tr>
-					<td><?php echo esc_html( $row['id'] ?? '' ); ?></td>
-					<td><span class="es-badge es-badge--<?php echo esc_attr( $row['trigger_type'] ?? 'general' ); ?>"><?php echo esc_html( ucfirst( $row['trigger_type'] ?? 'general' ) ); ?></span></td>
-					<td><?php echo esc_html( wp_trim_words( $row['question_text'] ?? '', 10 ) ); ?></td>
-					<td><?php echo esc_html( $row['answer'] ?? '' ); ?></td>
-					<td><?php echo ! empty( $row['cart_value'] ) ? wc_price( $row['cart_value'] ) : '—'; ?></td>
-					<td><?php echo esc_html( date_i18n( 'M j, Y H:i', strtotime( $row['created_at'] ?? 'now' ) ) ); ?></td>
+					<td><?php echo esc_html( $es_row['id'] ?? '' ); ?></td>
+					<td><span class="es-badge es-badge--<?php echo esc_attr( $es_row['trigger_type'] ?? 'general' ); ?>"><?php echo esc_html( ucfirst( $es_row['trigger_type'] ?? 'general' ) ); ?></span></td>
+					<td><?php echo esc_html( wp_trim_words( $es_row['question_text'] ?? '', 10 ) ); ?></td>
+					<td><?php echo esc_html( $es_row['answer'] ?? '' ); ?></td>
+					<td><?php echo ! empty( $es_row['cart_value'] ) ? wp_kses_post( wc_price( $es_row['cart_value'] ) ) : '—'; ?></td>
+					<td><?php echo esc_html( date_i18n( 'M j, Y H:i', strtotime( $es_row['created_at'] ?? 'now' ) ) ); ?></td>
 					<td>
-						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=exitsurvey_delete_response&id=' . ( $row['id'] ?? 0 ) ), 'exitsurvey_delete_response' ) ); ?>"
+						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=exitsurvey_delete_response&id=' . ( $es_row['id'] ?? 0 ) ), 'exitsurvey_delete_response' ) ); ?>"
 						   class="es-delete-link"
 						   onclick="return confirm('<?php esc_attr_e( 'Delete this response?', 'exitsurvey' ); ?>')">
 							<?php echo esc_html__( 'Delete', 'exitsurvey' ); ?>
@@ -65,12 +71,12 @@
 			<div class="tablenav bottom">
 				<div class="tablenav-pages">
 					<?php
-					echo paginate_links( [
+					echo wp_kses_post( paginate_links( [
 						'base'    => add_query_arg( 'paged', '%#%' ),
 						'format'  => '',
 						'current' => $filter['page'],
 						'total'   => $data['pages'],
-					] );
+					] ) );
 					?>
 				</div>
 			</div>

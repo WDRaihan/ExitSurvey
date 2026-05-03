@@ -6,9 +6,9 @@
 	</h1>
 
 	<div class="es-status-bar">
-		<?php $enabled = ExitSurvey_Settings::get( 'enabled', 'yes' ) === 'yes'; ?>
-		<span class="es-status <?php echo $enabled ? 'es-status--on' : 'es-status--off'; ?>">
-			<?php echo $enabled ? '● ' . esc_html__( 'Plugin Active', 'exitsurvey' ) : '● ' . esc_html__( 'Plugin Disabled', 'exitsurvey' ); ?>
+		<?php $es_enabled = ExitSurvey_Settings::get( 'enabled', 'yes' ) === 'yes'; ?>
+		<span class="es-status <?php echo esc_attr( $es_enabled ? 'es-status--on' : 'es-status--off' ); ?>">
+			<?php echo esc_html( $es_enabled ? '● ' . __( 'Plugin Active', 'exitsurvey' ) : '● ' . __( 'Plugin Disabled', 'exitsurvey' ) ); ?>
 		</span>
 		<a href="<?php echo esc_url( admin_url( 'admin.php?page=exitsurvey-settings' ) ); ?>" class="es-link-small">
 			<?php echo esc_html__( 'Settings →', 'exitsurvey' ); ?>
@@ -26,15 +26,15 @@
 			<div class="es-card__label"><?php echo esc_html__( "Today's Responses", 'exitsurvey' ); ?></div>
 		</div>
 		<div class="es-card es-card--blue">
-			<div class="es-card__number"><?php echo $stats['avg_cart_value'] ? wc_price( $stats['avg_cart_value'] ) : '—'; ?></div>
+			<div class="es-card__number"><?php echo $stats['avg_cart_value'] ? wp_kses_post( wc_price( $stats['avg_cart_value'] ) ) : '—'; ?></div>
 			<div class="es-card__label"><?php echo esc_html__( 'Avg Cart Value', 'exitsurvey' ); ?></div>
 		</div>
 		<div class="es-card es-card--orange">
 			<?php
-			$triggers = wp_list_pluck( $stats['by_trigger'] ?? [], 'count', 'trigger_type' );
-			$top      = key( $triggers ) ?: '—';
+			$es_triggers = wp_list_pluck( $stats['by_trigger'] ?? [], 'count', 'trigger_type' );
+			$es_top      = key( $es_triggers ) ?: '—';
 			?>
-			<div class="es-card__number"><?php echo esc_html( ucfirst( $top ) ); ?></div>
+			<div class="es-card__number"><?php echo esc_html( ucfirst( $es_top ) ); ?></div>
 			<div class="es-card__label"><?php echo esc_html__( 'Top Trigger', 'exitsurvey' ); ?></div>
 		</div>
 	</div>
@@ -47,10 +47,10 @@
 				<table class="es-table">
 					<thead><tr><th><?php echo esc_html__( 'Trigger', 'exitsurvey' ); ?></th><th><?php echo esc_html__( 'Count', 'exitsurvey' ); ?></th></tr></thead>
 					<tbody>
-					<?php foreach ( $stats['by_trigger'] as $row ) : ?>
+					<?php foreach ( $stats['by_trigger'] as $es_row ) : ?>
 						<tr>
-							<td><span class="es-badge es-badge--<?php echo esc_attr( $row['trigger_type'] ); ?>"><?php echo esc_html( ucfirst( $row['trigger_type'] ) ); ?></span></td>
-							<td><?php echo esc_html( number_format( $row['count'] ) ); ?></td>
+							<td><span class="es-badge es-badge--<?php echo esc_attr( $es_row['trigger_type'] ); ?>"><?php echo esc_html( ucfirst( $es_row['trigger_type'] ) ); ?></span></td>
+							<td><?php echo esc_html( number_format( $es_row['count'] ) ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 					</tbody>

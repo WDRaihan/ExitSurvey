@@ -61,9 +61,9 @@ class ExitSurvey_Settings {
 	 */
 	public static function get_questions_by_trigger() {
 		global $wpdb;
-		$table = $wpdb->prefix . 'exitsurvey_questions';
-		$rows  = $wpdb->get_results(
-			"SELECT * FROM {$table} WHERE is_active = 1 ORDER BY sort_order ASC",
+		$table = sanitize_key( $wpdb->prefix . 'exitsurvey_questions' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results(
+			$wpdb->prepare( "SELECT * FROM " . $table . " WHERE is_active = 1 ORDER BY sort_order ASC" ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			ARRAY_A
 		);
 

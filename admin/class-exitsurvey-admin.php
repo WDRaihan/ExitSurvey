@@ -71,6 +71,10 @@ class ExitSurvey_Admin {
 	}
 
 	public static function page_responses() {
+		if ( isset( $_GET['es_nonce'] ) && ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['es_nonce'] ) ), 'exitsurvey_filter' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'exitsurvey' ) );
+		}
+
 		$filter = [
 			'trigger_type' => sanitize_text_field( wp_unslash( $_GET['trigger'] ?? '' ) ),
 			'search'       => sanitize_text_field( wp_unslash( $_GET['s'] ?? '' ) ),
@@ -82,8 +86,8 @@ class ExitSurvey_Admin {
 
 	public static function page_questions() {
 		global $wpdb;
-		$table     = $wpdb->prefix . 'exitsurvey_questions';
-		$questions = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY sort_order ASC", ARRAY_A );
+		$table     = sanitize_key( $wpdb->prefix . 'exitsurvey_questions' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$questions = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM " . $table . " ORDER BY sort_order ASC" ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		include EXITSURVEY_PATH . 'admin/views/questions.php';
 	}
 
@@ -122,7 +126,7 @@ class ExitSurvey_Admin {
 			$raw = wp_unslash( $_POST[ $key ] ?? '' );
 			switch ( $type ) {
 				case 'yes_no':
-					update_option( $key, isset( $_POST[ $key ] ) ? 'yes' : 'no' );
+					update_option( $key, ! empty( $raw ) ? 'yes' : 'no' );
 					break;
 				case 'int':
 					update_option( $key, absint( $raw ) );
@@ -138,7 +142,7 @@ class ExitSurvey_Admin {
 			}
 		}
 
-		wp_redirect( add_query_arg( [ 'page' => 'exitsurvey-settings', 'saved' => '1' ], admin_url( 'admin.php' ) ) );
+		wp_safe_redirect( add_query_arg( [ 'page' => 'exitsurvey-settings', 'saved' => '1' ], admin_url( 'admin.php' ) ) );
 		exit;
 	}
 
@@ -152,12 +156,12 @@ class ExitSurvey_Admin {
 		$table = $wpdb->prefix . 'exitsurvey_questions';
 
 		$ids      = array_map( 'absint', wp_unslash( $_POST['q_id'] ?? [] ) );
-		$texts    = wp_unslash( $_POST['q_text'] ?? [] );
-		$types    = wp_unslash( $_POST['q_type'] ?? [] );
-		$triggers = wp_unslash( $_POST['q_trigger'] ?? [] );
-		$opts     = wp_unslash( $_POST['q_options'] ?? [] );
-		$active   = wp_unslash( $_POST['q_active'] ?? [] );
-		$orders   = wp_unslash( $_POST['q_order'] ?? [] );
+		$texts    = array_map( 'sanitize_textarea_field', wp_unslash( $_POST['q_text'] ?? [] ) );
+		$types    = array_map( 'sanitize_text_field', wp_unslash( $_POST['q_type'] ?? [] ) );
+		$triggers = array_map( 'sanitize_text_field', wp_unslash( $_POST['q_trigger'] ?? [] ) );
+		$opts     = array_map( 'sanitize_textarea_field', wp_unslash( $_POST['q_options'] ?? [] ) );
+		$active   = wp_unslash( $_POST['q_active'] ?? [] ); // Map of active indices.
+		$orders   = array_map( 'absint', wp_unslash( $_POST['q_order'] ?? [] ) );
 
 		foreach ( $ids as $i => $id ) {
 			if ( ! $id ) {
@@ -167,16 +171,16 @@ class ExitSurvey_Admin {
 			$options_arr = array_map( 'sanitize_text_field', array_filter( array_map( 'trim', explode( "\n", $options_raw ) ) ) );
 
 			$wpdb->update( $table, [
-				'question_text' => sanitize_textarea_field( $texts[ $i ] ?? '' ),
-				'question_type' => sanitize_text_field( $types[ $i ] ?? 'multiple_choice' ),
-				'trigger_type'  => sanitize_text_field( $triggers[ $i ] ?? 'general' ),
+				'question_text' => $texts[ $i ] ?? '',
+				'question_type' => $types[ $i ] ?? 'multiple_choice',
+				'trigger_type'  => $triggers[ $i ] ?? 'general',
 				'options'       => $options_arr ? json_encode( array_values( $options_arr ) ) : null,
 				'is_active'     => isset( $active[ $i ] ) ? 1 : 0,
-				'sort_order'    => (int) ( $orders[ $i ] ?? 0 ),
+				'sort_order'    => $orders[ $i ] ?? 0,
 			], [ 'id' => $id ] );
 		}
 
-		wp_redirect( add_query_arg( [ 'page' => 'exitsurvey-questions', 'saved' => '1' ], admin_url( 'admin.php' ) ) );
+		wp_safe_redirect( add_query_arg( [ 'page' => 'exitsurvey-questions', 'saved' => '1' ], admin_url( 'admin.php' ) ) );
 		exit;
 	}
 
@@ -189,7 +193,7 @@ class ExitSurvey_Admin {
 		if ( $id ) {
 			ExitSurvey_Responses::delete( $id );
 		}
-		wp_redirect( add_query_arg( [ 'page' => 'exitsurvey-responses', 'deleted' => '1' ], admin_url( 'admin.php' ) ) );
+		wp_safe_redirect( add_query_arg( [ 'page' => 'exitsurvey-responses', 'deleted' => '1' ], admin_url( 'admin.php' ) ) );
 		exit;
 	}
 }

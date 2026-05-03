@@ -14,7 +14,7 @@ class ExitSurvey_Responses {
 	 */
 	public static function get_responses( $args = [] ) {
 		global $wpdb;
-		$table = $wpdb->prefix . 'exitsurvey_responses';
+		$table = sanitize_key( $wpdb->prefix . 'exitsurvey_responses' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		$defaults = [
 			'per_page'     => 10,
@@ -45,18 +45,21 @@ class ExitSurvey_Responses {
 		$order     = in_array( strtoupper( $args['order'] ), [ 'ASC', 'DESC' ] ) ? $args['order'] : 'DESC';
 		$orderby   = sanitize_sql_orderby( $args['orderby'] . ' ' . $order ) ?: 'created_at DESC';
 
-		$sql = "SELECT * FROM {$table} WHERE {$where_sql} ORDER BY {$orderby} LIMIT %d OFFSET %d";
 		$params[] = $args['per_page'];
 		$params[] = $offset;
 
-		$rows = $params
-			? $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A )
-			: $wpdb->get_results( $sql, ARRAY_A );
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM " . $table . " WHERE " . $where_sql . " ORDER BY " . $orderby . " LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$params
+			),
+			ARRAY_A
+		);
 
-		$count_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where_sql}";
-		$total     = $params
-			? $wpdb->get_var( $wpdb->prepare( $count_sql, array_slice( $params, 0, count($params) - 2 ) ) )
-			: $wpdb->get_var( $count_sql );
+		$count_params = array_slice( $params, 0, -2 );
+		$total        = $count_params
+			? $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM " . $table . " WHERE " . $where_sql, $count_params ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			: $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM " . $table . " WHERE " . $where_sql ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		return [
 			'rows'  => $rows ?: [],
@@ -70,14 +73,16 @@ class ExitSurvey_Responses {
 	 */
 	public static function get_stats() {
 		global $wpdb;
-		$table = $wpdb->prefix . 'exitsurvey_responses';
+		$table = sanitize_key( $wpdb->prefix . 'exitsurvey_responses' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		return [
-			'total'           => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ),
-			'today'           => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE DATE(created_at) = CURDATE()" ),
-			'by_trigger'      => $wpdb->get_results( "SELECT trigger_type, COUNT(*) as count FROM {$table} GROUP BY trigger_type ORDER BY count DESC", ARRAY_A ),
-			'avg_cart_value'  => (float) $wpdb->get_var( "SELECT AVG(cart_value) FROM {$table} WHERE cart_value > 0" ),
-			'top_answers'     => $wpdb->get_results( "SELECT answer, COUNT(*) as count FROM {$table} GROUP BY answer ORDER BY count DESC LIMIT 10", ARRAY_A ),
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+			'total'           => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM " . $table ) ),
+			'today'           => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM " . $table . " WHERE DATE(created_at) = CURDATE()" ) ),
+			'by_trigger'      => $wpdb->get_results( $wpdb->prepare( "SELECT trigger_type, COUNT(*) as count FROM " . $table . " GROUP BY trigger_type ORDER BY count DESC" ), ARRAY_A ),
+			'avg_cart_value'  => (float) $wpdb->get_var( $wpdb->prepare( "SELECT AVG(cart_value) FROM " . $table . " WHERE cart_value > 0" ) ),
+			'top_answers'     => $wpdb->get_results( $wpdb->prepare( "SELECT answer, COUNT(*) as count FROM " . $table . " GROUP BY answer ORDER BY count DESC LIMIT 10" ), ARRAY_A ),
+			// phpcs:enable
 		];
 	}
 

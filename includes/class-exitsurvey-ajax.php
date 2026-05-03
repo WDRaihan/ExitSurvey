@@ -22,19 +22,10 @@ class ExitSurvey_Ajax {
 	}
 
 	/**
-	 * Verify nonce helper.
-	 */
-	private static function verify_nonce() {
-		if ( ! check_ajax_referer( 'exitsurvey_nonce', 'nonce', false ) ) {
-			wp_send_json_error( [ 'message' => 'Security check failed.' ], 403 );
-		}
-	}
-
-	/**
 	 * Save a survey response.
 	 */
 	public static function submit_response() {
-		self::verify_nonce();
+		check_ajax_referer( 'exitsurvey_nonce', 'nonce' );
 
 		global $wpdb;
 
@@ -43,7 +34,7 @@ class ExitSurvey_Ajax {
 		$question_text = sanitize_textarea_field( wp_unslash( $_POST['question_text'] ?? '' ) );
 		$answer        = sanitize_textarea_field( wp_unslash( $_POST['answer'] ?? '' ) );
 		$trigger_type  = sanitize_text_field( wp_unslash( $_POST['trigger_type'] ?? 'general' ) );
-		$cart_value    = isset( $_POST['cart_value'] ) ? floatval( $_POST['cart_value'] ) : null;
+		$cart_value    = isset( $_POST['cart_value'] ) ? floatval( wp_unslash( $_POST['cart_value'] ) ) : null;
 		$cart_items    = sanitize_textarea_field( wp_unslash( $_POST['cart_items'] ?? '' ) );
 		$page_history  = sanitize_textarea_field( wp_unslash( $_POST['page_history'] ?? '' ) );
 
@@ -63,7 +54,7 @@ class ExitSurvey_Ajax {
 			'cart_items'    => $cart_items,
 			'page_history'  => $page_history,
 			'ip_address'    => self::get_ip(),
-			'user_agent'    => substr( sanitize_text_field( $_SERVER['HTTP_USER_AGENT'] ?? '' ), 0, 500 ),
+			'user_agent'    => substr( sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? '' ) ), 0, 500 ),
 		] );
 
 		if ( false === $result ) {
@@ -82,7 +73,7 @@ class ExitSurvey_Ajax {
 	 * Return questions for the current trigger context.
 	 */
 	public static function get_questions() {
-		self::verify_nonce();
+		check_ajax_referer( 'exitsurvey_nonce', 'nonce' );
 
 		$trigger     = sanitize_text_field( wp_unslash( $_POST['trigger'] ?? 'general' ) );
 		$all         = ExitSurvey_Settings::get_questions_by_trigger();
@@ -102,7 +93,7 @@ class ExitSurvey_Ajax {
 	 * Return current WooCommerce cart data.
 	 */
 	public static function get_cart() {
-		self::verify_nonce();
+		check_ajax_referer( 'exitsurvey_nonce', 'nonce' );
 
 		$cart_data = [];
 
@@ -167,7 +158,7 @@ class ExitSurvey_Ajax {
 	private static function get_ip() {
 		foreach ( [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR' ] as $key ) {
 			if ( ! empty( $_SERVER[ $key ] ) ) {
-				$ip = sanitize_text_field( explode( ',', $_SERVER[ $key ] )[0] );
+				$ip = sanitize_text_field( explode( ',', wp_unslash( $_SERVER[ $key ] ) )[0] );
 				if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
 					return $ip;
 				}
