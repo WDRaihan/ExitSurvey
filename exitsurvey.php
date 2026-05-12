@@ -1,15 +1,12 @@
 <?php
 /**
  * Plugin Name: ExitSurvey - Smart Exit Survey for WooCommerce
- * Plugin URI:  https://github.com/exitsurvey-woo
  * Description: Tracks user browsing behavior and shows smart exit-intent surveys with cart data to recover abandoned carts.
  * Version:     1.0.0
- * Author:      ExitSurvey
- * Author URI:  https://exitsurvey.io
+ * Author:      WDRaihan
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain: exitsurvey
- * Domain Path: /languages
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
@@ -19,49 +16,152 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// Plugin constants
-define( 'EXITSURVEY_VERSION', '1.0.0' );
-define( 'EXITSURVEY_FILE', __FILE__ );
-define( 'EXITSURVEY_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EXITSURVEY_URL', plugin_dir_url( __FILE__ ) );
-define( 'EXITSURVEY_BASENAME', plugin_basename( __FILE__ ) );
-
 /**
- * Initialize plugin.
+ * Main ExitSurvey Class.
+ *
+ * @final
  */
-function exitsurvey_init() {
-	// Load core files
-	require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-install.php';
-	require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-settings.php';
-	require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-ajax.php';
-	require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-survey.php';
-	require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-responses.php';
-	require_once EXITSURVEY_PATH . 'admin/class-exitsurvey-admin.php';
-	require_once EXITSURVEY_PATH . 'public/class-exitsurvey-public.php';
+final class ExitSurvey {
 
-	// Boot modules
-	ExitSurvey_Install::init();
-	ExitSurvey_Ajax::init();
-	ExitSurvey_Public::init();
+	/**
+	 * Plugin version.
+	 *
+	 * @var string
+	 */
+	public $version = '1.0.0';
 
-	if ( is_admin() ) {
-		ExitSurvey_Admin::init();
+	/**
+	 * The single instance of the class.
+	 *
+	 * @var ExitSurvey
+	 */
+	protected static $_instance = null;
+
+	/**
+	 * Main ExitSurvey Instance.
+	 *
+	 * Ensures only one instance of ExitSurvey is loaded or can be loaded.
+	 *
+	 * @static
+	 * @return ExitSurvey - Main instance.
+	 */
+	public static function instance() {
+		if ( is_null( self::$_instance ) ) {
+			self::$_instance = new self();
+		}
+		return self::$_instance;
 	}
+
+	/**
+	 * ExitSurvey Constructor.
+	 */
+	public function __construct() {
+		$this->define_constants();
+		$this->init_hooks();
+	}
+
+	/**
+	 * Define Plugin Constants.
+	 */
+	private function define_constants() {
+		$this->define( 'EXITSURVEY_VERSION', $this->version );
+		$this->define( 'EXITSURVEY_FILE', __FILE__ );
+		$this->define( 'EXITSURVEY_PATH', plugin_dir_path( __FILE__ ) );
+		$this->define( 'EXITSURVEY_URL', plugin_dir_url( __FILE__ ) );
+		$this->define( 'EXITSURVEY_BASENAME', plugin_basename( __FILE__ ) );
+	}
+
+	/**
+	 * Define constant if not already set.
+	 *
+	 * @param string      $name  Constant name.
+	 * @param string|bool $value Constant value.
+	 */
+	private function define( $name, $value ) {
+		if ( ! defined( $name ) ) {
+			define( $name, $value );
+		}
+	}
+
+	/**
+	 * Hook into WordPress.
+	 */
+	private function init_hooks() {
+		register_activation_hook( EXITSURVEY_FILE, array( $this, 'activate' ) );
+		register_deactivation_hook( EXITSURVEY_FILE, array( $this, 'deactivate' ) );
+
+		add_action( 'plugins_loaded', array( $this, 'init' ) );
+	}
+
+	/**
+	 * Initialize the plugin.
+	 */
+	public function init() {
+		// Check if WooCommerce is active
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			return;
+		}
+
+		$this->includes();
+		$this->boot();
+		
+		do_action( 'exitsurvey_loaded' );
+	}
+
+	/**
+	 * Load core files.
+	 */
+	private function includes() {
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-install.php';
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-settings.php';
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-ajax.php';
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-survey.php';
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-responses.php';
+		require_once EXITSURVEY_PATH . 'admin/class-exitsurvey-admin.php';
+		require_once EXITSURVEY_PATH . 'public/class-exitsurvey-public.php';
+	}
+
+	/**
+	 * Boot modules.
+	 */
+	private function boot() {
+		ExitSurvey_Install::init();
+		ExitSurvey_Ajax::init();
+		ExitSurvey_Public::init();
+
+		if ( is_admin() ) {
+			ExitSurvey_Admin::init();
+		}
+	}
+
+	/**
+	 * Activation hook.
+	 */
+	public function activate() {
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-install.php';
+		ExitSurvey_Install::activate();
+	}
+
+	/**
+	 * Deactivation hook.
+	 */
+	public function deactivate() {
+		// Cleanup transients on deactivation
+		delete_transient( 'exitsurvey_cart_data' );
+	}
+
 }
-add_action( 'plugins_loaded', 'exitsurvey_init' );
 
 /**
- * Activation hook.
+ * Returns the main instance of ExitSurvey.
+ *
+ * @return ExitSurvey
  */
-register_activation_hook( __FILE__, function() {
-	require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-install.php';
-	ExitSurvey_Install::activate();
-} );
+function exitsurvey() {
+	return ExitSurvey::instance();
+}
 
-/**
- * Deactivation hook.
- */
-register_deactivation_hook( __FILE__, function() {
-	// Cleanup transients on deactivation
-	delete_transient( 'exitsurvey_cart_data' );
-} );
+// Initialize the plugin.
+exitsurvey();
+
+

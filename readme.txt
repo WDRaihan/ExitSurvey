@@ -1,5 +1,5 @@
 === ExitSurvey - Smart Exit Survey for WooCommerce ===
-Contributors: exitsurvey
+Contributors: wdraihan
 Tags: woocommerce, exit intent, survey, cart abandonment, feedback
 Requires at least: 5.8
 Tested up to: 6.9
