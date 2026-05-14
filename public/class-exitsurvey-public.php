@@ -47,6 +47,7 @@ class ExitSurvey_Public {
 		wp_localize_script( 'exitsurvey-public', 'ExitSurveyConfig', array_merge( $config, [
 			'questions'   => $questions,
 			'pageContext' => $page_context,
+			'isAdmin'     => current_user_can( 'manage_woocommerce' ),
 		] ) );
 	}
 
@@ -102,6 +103,12 @@ class ExitSurvey_Public {
 
 					<!-- Open text input -->
 					<textarea class="es-textarea" id="es-text-answer" rows="3" placeholder="<?php esc_attr_e( 'Share your thoughts...', 'exitsurvey' ); ?>" style="display:none;"></textarea>
+
+					<!-- Extra Field -->
+					<div id="es-extra-field-container" class="es-extra-field" style="display:none;">
+						<label id="es-extra-field-label" class="es-extra-label"></label>
+						<input type="text" id="es-extra-field-input" class="es-extra-input">
+					</div>
 
 					<div class="es-actions">
 						<button class="es-btn es-btn--primary" id="es-submit-btn"></button>

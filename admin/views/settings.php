@@ -38,6 +38,12 @@
 							<p class="description"><?php echo esc_html__( 'Days before showing the survey again to the same visitor.', 'exitsurvey' ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th><?php echo esc_html__( 'Admin Bypass', 'exitsurvey' ); ?></th>
+						<td>
+							<label><input type="checkbox" name="exitsurvey_admin_bypass" value="yes" <?php checked( ExitSurvey_Settings::get('admin_bypass'), 'yes' ); ?>> <?php echo esc_html__( 'Bypass cookie duration for administrators (useful for testing)', 'exitsurvey' ); ?></label>
+						</td>
+					</tr>
 				</table>
 			</div>
 
@@ -87,8 +93,11 @@
 						<td><input type="text" name="exitsurvey_thank_you_msg" value="<?php echo esc_attr( ExitSurvey_Settings::get('thank_you_msg') ); ?>" class="regular-text"></td>
 					</tr>
 					<tr>
-						<th><?php echo esc_html__( 'Brand Color', 'exitsurvey' ); ?></th>
-						<td><input type="text" name="exitsurvey_branding_color" value="<?php echo esc_attr( ExitSurvey_Settings::get('branding_color', '#7c3aed') ); ?>" class="es-color-picker"></td>
+						<th><?php echo esc_html__( 'Brand Color (Start)', 'exitsurvey' ); ?></th>
+						<td><input type="text" name="exitsurvey_branding_color" value="<?php echo esc_attr( ExitSurvey_Settings::get('branding_color', '#2563eb') ); ?>" class="es-color-picker"></td>
+					</tr>
+					<tr>
+						<td><input type="text" name="exitsurvey_branding_color_2" value="<?php echo esc_attr( ExitSurvey_Settings::get('branding_color_2', '#3b82f6') ); ?>" class="es-color-picker"></td>
 					</tr>
 				</table>
 			</div>

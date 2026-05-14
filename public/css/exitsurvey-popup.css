@@ -2,8 +2,8 @@
    ExitSurvey — Popup Styles
    ============================================================ */
 :root {
-  --es-brand:   #7c3aed;
-  --es-brand-d: #6d28d9;
+  --es-brand:   #2563eb;
+  --es-brand-2: #3b82f6;
   --es-radius:  18px;
   --es-shadow:  0 25px 60px rgba(0,0,0,.22);
   --es-anim:    .25s cubic-bezier(.4,0,.2,1);
@@ -79,7 +79,7 @@ body.es-no-scroll { overflow: hidden; }
 .es-popup__header {
   text-align: center;
   padding: 32px 28px 20px;
-  background: linear-gradient(135deg, var(--es-brand) 0%, #a855f7 100%);
+  background: linear-gradient(135deg, var(--es-brand) 0%, var(--es-brand-2) 100%);
   border-radius: var(--es-radius) var(--es-radius) 0 0;
 }
 .es-popup__icon { font-size: 40px; margin-bottom: 8px; }
@@ -207,6 +207,21 @@ body.es-no-scroll { overflow: hidden; }
   color: #374151;
 }
 .es-textarea:focus { border-color: var(--es-brand); }
+.es-extra-field { margin-bottom: 20px; }
+.es-extra-label { display: block; font-size: 14px; font-weight: 600; color: #4b5563; margin-bottom: 8px; }
+.es-extra-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .15s;
+  color: #374151;
+}
+.es-extra-input:focus { border-color: var(--es-brand); }
 
 /* ---- Action Buttons ---- */
 .es-actions {
@@ -231,10 +246,10 @@ body.es-no-scroll { overflow: hidden; }
 .es-btn:active { transform: scale(.98); }
 
 .es-btn--primary {
-  background: var(--es-brand);
+  background: #2563eb;
   color: #fff;
 }
-.es-btn--primary:hover { background: var(--es-brand-d); }
+.es-btn--primary:hover { opacity: 0.9; }
 
 .es-btn--ghost {
   background: transparent;

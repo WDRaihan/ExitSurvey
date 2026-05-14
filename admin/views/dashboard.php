@@ -25,7 +25,7 @@
 			<div class="es-card__number"><?php echo esc_html( number_format( $stats['today'] ) ); ?></div>
 			<div class="es-card__label"><?php echo esc_html__( "Today's Responses", 'exitsurvey' ); ?></div>
 		</div>
-		<div class="es-card es-card--blue">
+		<div class="es-card es-card--cyan">
 			<div class="es-card__number"><?php echo $stats['avg_cart_value'] ? wp_kses_post( wc_price( $stats['avg_cart_value'] ) ) : '—'; ?></div>
 			<div class="es-card__label"><?php echo esc_html__( 'Avg Cart Value', 'exitsurvey' ); ?></div>
 		</div>

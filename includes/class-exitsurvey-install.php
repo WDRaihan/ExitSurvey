@@ -10,7 +10,9 @@ defined( 'ABSPATH' ) || exit;
 class ExitSurvey_Install {
 
 	public static function init() {
-		// Nothing extra needed at runtime; tables created on activation.
+		if ( is_admin() ) {
+			self::maybe_update_database();
+		}
 	}
 
 	/**
@@ -20,6 +22,7 @@ class ExitSurvey_Install {
 		self::create_tables();
 		self::insert_default_questions();
 		self::set_default_options();
+		self::maybe_update_database();
 		update_option( 'exitsurvey_version', EXITSURVEY_VERSION );
 	}
 
@@ -61,9 +64,11 @@ class ExitSurvey_Install {
 			question_text TEXT                NOT NULL,
 			options       LONGTEXT                     DEFAULT NULL,
 			question_type VARCHAR(32)         NOT NULL DEFAULT 'multiple_choice',
-			is_active     TINYINT(1)          NOT NULL DEFAULT 1,
-			sort_order    INT(11)             NOT NULL DEFAULT 0,
-			created_at    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			is_active           TINYINT(1)          NOT NULL DEFAULT 1,
+			sort_order          INT(11)             NOT NULL DEFAULT 0,
+			extra_field_enabled TINYINT(1)          NOT NULL DEFAULT 0,
+			extra_field_label   TEXT                         DEFAULT NULL,
+			created_at          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			UNIQUE KEY  uq_key (question_key),
 			KEY idx_trigger (trigger_type),
@@ -73,6 +78,32 @@ class ExitSurvey_Install {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_responses );
 		dbDelta( $sql_questions );
+	}
+
+	/**
+	 * Run lightweight migrations for existing tables.
+	 */
+	private static function maybe_update_database() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'exitsurvey_responses';
+
+		// Add extra_info to responses table if missing
+		$column = $wpdb->get_results( $wpdb->prepare( "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s AND COLUMN_NAME = 'extra_info' AND TABLE_SCHEMA = %s", $table, DB_NAME ) );
+		if ( empty( $column ) ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN extra_info TEXT DEFAULT NULL AFTER answer" );
+		}
+
+		// Add extra_field columns to questions table if missing
+		$q_table = $wpdb->prefix . 'exitsurvey_questions';
+		$columns = $wpdb->get_results( $wpdb->prepare( "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s AND COLUMN_NAME IN ('extra_field_enabled', 'extra_field_label') AND TABLE_SCHEMA = %s", $q_table, DB_NAME ) );
+		$existing_cols = wp_list_pluck( $columns, 'COLUMN_NAME' );
+
+		if ( ! in_array( 'extra_field_enabled', $existing_cols ) ) {
+			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN extra_field_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER sort_order" );
+		}
+		if ( ! in_array( 'extra_field_label', $existing_cols ) ) {
+			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN extra_field_label TEXT DEFAULT NULL AFTER extra_field_enabled" );
+		}
 	}
 
 	/**

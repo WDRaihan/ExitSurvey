@@ -70,6 +70,17 @@
 								$options = $q['options'] ? json_decode( $q['options'], true ) : [];
 								echo esc_textarea( implode( "\n", $options ) );
 							?></textarea>
+
+							<div class="es-extra-field-settings" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+								<label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+									<input type="checkbox" name="q_extra_enabled[<?php echo (int) $row_index; ?>]" value="1" <?php checked( $q['extra_field_enabled'] ?? 0, 1 ); ?>>
+									<?php echo esc_html__( 'Enable additional text input for this question', 'exitsurvey' ); ?>
+								</label>
+								<div class="es-extra-field-label-wrap" style="margin-top: 10px; <?php echo ( $q['extra_field_enabled'] ?? 0 ) ? '' : 'display:none;'; ?>">
+									<label style="display: block; margin-bottom: 5px; font-size: 13px;"><?php echo esc_html__( 'Extra Field Label:', 'exitsurvey' ); ?></label>
+									<input type="text" name="q_extra_label[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $q['extra_field_label'] ?? 'Share your email for a discount code' ); ?>" class="regular-text" style="width: 100%;">
+								</div>
+							</div>
 						</div>
 					</div>
 					<?php $row_index++; ?>

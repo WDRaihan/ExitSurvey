@@ -133,9 +133,11 @@
 
       if (!this.$overlay.length) return;
 
-      // Apply branding colour
-      const color = CFG.brandingColor || '#7c3aed';
+      // Apply branding colours
+      const color  = CFG.brandingColor || '#7c3aed';
+      const color2 = CFG.brandingColor2 || '#a855f7';
       document.documentElement.style.setProperty('--es-brand', color);
+      document.documentElement.style.setProperty('--es-brand-2', color2);
 
       // Populate static labels
       $('#es-popup-title').text(CFG.popupTitle || 'Wait! Before you go...');
@@ -236,6 +238,16 @@
           );
         });
       }
+
+      // Handle extra field (per-question)
+      const $extraContainer = $('#es-extra-field-container');
+      if (this.question && this.question.extra_field_enabled) {
+        $('#es-extra-field-label').text(this.question.extra_field_label || '');
+        $('#es-extra-field-input').attr('placeholder', CFG.extraFieldPlaceholder || '').val('');
+        $extraContainer.show();
+      } else {
+        $extraContainer.hide();
+      }
     },
 
     submitAnswer() {
@@ -255,13 +267,16 @@
       this.answer = answer;
       this.showLoading();
 
+      const extraInfo = $('#es-extra-field-input').val() || '';
+      const finalAnswer = extraInfo ? `${answer} | Note: ${extraInfo}` : answer;
+
       const payload = {
         action:        'exitsurvey_submit',
         nonce:         CFG.nonce,
         session_id:    getSessionId(),
         question_id:   this.question ? this.question.question_key : 'unknown',
         question_text: this.question ? this.question.question_text : '',
-        answer:        answer,
+        answer:        finalAnswer,
         trigger_type:  this.triggerType,
         cart_value:    this.cartData ? this.cartData.raw_total : 0,
         cart_items:    this.cartData ? JSON.stringify(this.cartData.items) : '',
@@ -331,10 +346,14 @@
 
     fire() {
       if (this.triggered || Popup.shown) return;
-      if (getCookie(COOKIE_KEY)) return; // Already shown recently
+
+      const bypass = CFG.isAdmin && CFG.adminBypass;
+      if (!bypass && getCookie(COOKIE_KEY)) return; // Already shown recently
 
       this.triggered = true;
-      setCookie(COOKIE_KEY, '1', CFG.cookieDays || 3);
+      if (!bypass) {
+        setCookie(COOKIE_KEY, '1', CFG.cookieDays || 3);
+      }
 
       // Determine trigger from history
       ES.launch();

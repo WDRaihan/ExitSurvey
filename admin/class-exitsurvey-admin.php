@@ -112,9 +112,11 @@ class ExitSurvey_Admin {
 			'exitsurvey_show_cart_items'  => 'yes_no',
 			'exitsurvey_show_on_mobile'   => 'yes_no',
 			'exitsurvey_cookie_days'      => 'int',
+			'exitsurvey_admin_bypass'     => 'yes_no',
 			'exitsurvey_popup_title'      => 'text',
 			'exitsurvey_popup_subtitle'   => 'text',
 			'exitsurvey_branding_color'   => 'color',
+			'exitsurvey_branding_color_2' => 'color',
 			'exitsurvey_submit_label'     => 'text',
 			'exitsurvey_skip_label'       => 'text',
 			'exitsurvey_thank_you_msg'    => 'text',
@@ -135,7 +137,12 @@ class ExitSurvey_Admin {
 					update_option( $key, sanitize_email( $raw ) );
 					break;
 				case 'color':
-					update_option( $key, sanitize_hex_color( $raw ) ?: '#7c3aed' );
+					$val = sanitize_hex_color( $raw );
+					if ( $val ) {
+						update_option( $key, $val );
+					} else {
+						delete_option( $key );
+					}
 					break;
 				default:
 					update_option( $key, sanitize_text_field( $raw ) );
@@ -162,6 +169,8 @@ class ExitSurvey_Admin {
 		$opts     = array_map( 'sanitize_textarea_field', wp_unslash( $_POST['q_options'] ?? [] ) );
 		$active   = wp_unslash( $_POST['q_active'] ?? [] ); // Map of active indices.
 		$orders   = array_map( 'absint', wp_unslash( $_POST['q_order'] ?? [] ) );
+		$extra_en = wp_unslash( $_POST['q_extra_enabled'] ?? [] );
+		$extra_lb = array_map( 'sanitize_text_field', wp_unslash( $_POST['q_extra_label'] ?? [] ) );
 
 		foreach ( $ids as $i => $id ) {
 			if ( ! $id ) {
@@ -177,6 +186,8 @@ class ExitSurvey_Admin {
 				'options'       => $options_arr ? json_encode( array_values( $options_arr ) ) : null,
 				'is_active'     => isset( $active[ $i ] ) ? 1 : 0,
 				'sort_order'    => $orders[ $i ] ?? 0,
+				'extra_field_enabled' => isset( $extra_en[ $i ] ) ? 1 : 0,
+				'extra_field_label'   => $extra_lb[ $i ] ?? 'Share your email for a discount code',
 			], [ 'id' => $id ] );
 		}
 

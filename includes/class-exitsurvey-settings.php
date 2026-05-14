@@ -43,9 +43,14 @@ class ExitSurvey_Settings {
 			'showCartItems'   => self::get( 'show_cart_items', 'yes' ) === 'yes',
 			'showOnMobile'    => self::get( 'show_on_mobile', 'no' ) === 'yes',
 			'cookieDays'      => (int) self::get( 'cookie_days', 3 ),
+			'adminBypass'     => self::get( 'admin_bypass', 'no' ) === 'yes',
 			'popupTitle'      => self::get( 'popup_title', 'Wait! Before you go...' ),
 			'popupSubtitle'   => self::get( 'popup_subtitle', 'Help us understand how we can serve you better.' ),
-			'brandingColor'   => self::get( 'branding_color', '#7c3aed' ),
+			'brandingColor'   => self::get( 'branding_color', '#2563eb' ),
+			'brandingColor2'  => self::get( 'branding_color_2', '#3b82f6' ),
+			'extraFieldEnabled'     => self::get( 'extra_field_enabled', 'no' ) === 'yes',
+			'extraFieldLabel'       => self::get( 'extra_field_label', 'Share your email for a discount code' ),
+			'extraFieldPlaceholder' => self::get( 'extra_field_placeholder', 'Your email address...' ),
 			'submitLabel'     => self::get( 'submit_label', 'Submit & Continue' ),
 			'skipLabel'       => self::get( 'skip_label', 'No thanks, just leave' ),
 			'thankYouMsg'     => self::get( 'thank_you_msg', 'Thank you for your feedback! 🙏' ),
@@ -70,6 +75,7 @@ class ExitSurvey_Settings {
 		$grouped = [];
 		foreach ( $rows as $row ) {
 			$row['options'] = $row['options'] ? json_decode( $row['options'], true ) : [];
+			$row['extra_field_enabled'] = (bool) $row['extra_field_enabled'];
 			$grouped[ $row['trigger_type'] ][] = $row;
 		}
 		return $grouped;
