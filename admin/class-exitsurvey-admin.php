@@ -171,6 +171,11 @@ class ExitSurvey_Admin {
 		$orders   = array_map( 'absint', wp_unslash( $_POST['q_order'] ?? [] ) );
 		$extra_en = wp_unslash( $_POST['q_extra_enabled'] ?? [] );
 		$extra_lb = array_map( 'sanitize_text_field', wp_unslash( $_POST['q_extra_label'] ?? [] ) );
+		$seg_user = array_map( 'sanitize_text_field', wp_unslash( $_POST['q_seg_user_type'] ?? [] ) );
+		$seg_mino = array_map( 'absint', wp_unslash( $_POST['q_seg_min_orders'] ?? [] ) );
+		$seg_maxo = array_map( 'absint', wp_unslash( $_POST['q_seg_max_orders'] ?? [] ) );
+		$seg_minc = wp_unslash( $_POST['q_seg_min_cart'] ?? [] );
+		$seg_maxc = wp_unslash( $_POST['q_seg_max_cart'] ?? [] );
 
 		foreach ( $ids as $i => $id ) {
 			if ( ! $id ) {
@@ -178,6 +183,14 @@ class ExitSurvey_Admin {
 			}
 			$options_raw = trim( $opts[ $i ] ?? '' );
 			$options_arr = array_map( 'sanitize_text_field', array_filter( array_map( 'trim', explode( "\n", $options_raw ) ) ) );
+
+			$segment_rules = wp_json_encode( [
+				'user_type'      => $seg_user[ $i ] ?? 'all',
+				'min_orders'     => $seg_mino[ $i ] ?? 0,
+				'max_orders'     => $seg_maxo[ $i ] ?? 0,
+				'min_cart_value'  => floatval( $seg_minc[ $i ] ?? 0 ),
+				'max_cart_value'  => floatval( $seg_maxc[ $i ] ?? 0 ),
+			] );
 
 			$wpdb->update( $table, [
 				'question_text' => $texts[ $i ] ?? '',
@@ -188,6 +201,7 @@ class ExitSurvey_Admin {
 				'sort_order'    => $orders[ $i ] ?? 0,
 				'extra_field_enabled' => isset( $extra_en[ $i ] ) ? 1 : 0,
 				'extra_field_label'   => $extra_lb[ $i ] ?? 'Share your email for a discount code',
+				'segment_rules'       => $segment_rules,
 			], [ 'id' => $id ] );
 		}
 

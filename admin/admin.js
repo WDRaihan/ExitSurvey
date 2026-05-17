@@ -12,4 +12,13 @@ jQuery(function($) {
 			$wrap.slideUp(200);
 		}
 	});
+
+	// Toggle targeting rules
+	$(document).on('click', '.es-segment-toggle', function(e) {
+		e.preventDefault();
+		const $body = $(this).closest('.es-segment-settings').find('.es-segment-body');
+		const $arrow = $(this).find('.es-segment-arrow');
+		$body.slideToggle(200);
+		$arrow.toggleClass('open');
+	});
 });

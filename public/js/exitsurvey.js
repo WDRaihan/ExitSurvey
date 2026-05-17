@@ -168,7 +168,7 @@
       this.cartData   = cartData;
 
       this.renderCart(cartData, triggerType);
-      this.renderQuestion(triggerType);
+      this.renderQuestion(triggerType, cartData);
 
       this.$overlay.fadeIn(200);
       this.$popup.addClass('es-popup--enter');
@@ -218,17 +218,28 @@
       $section.show();
     },
 
-    renderQuestion(triggerType) {
+    renderQuestion(triggerType, cartData) {
       const allQ   = CFG.questions || {};
       let questions = allQ[triggerType] || allQ['general'] || [];
 
+      // Client-side cart value filtering
+      const cartValue = cartData ? parseFloat(cartData.raw_total || 0) : 0;
+      questions = questions.filter(q => {
+        const seg = q.segment_rules || {};
+        const minCart = parseFloat(seg.min_cart_value || 0);
+        const maxCart = parseFloat(seg.max_cart_value || 0);
+        if (minCart > 0 && cartValue < minCart) return false;
+        if (maxCart > 0 && cartValue > maxCart) return false;
+        return true;
+      });
+
       if (!questions.length) {
-        // No question — just show cart
+        // No question matches — just show cart
         $('#es-survey-section').hide();
         return;
       }
 
-      // Pick one question (first active)
+      // Pick first matching question
       this.question = questions[0];
       this.answer   = null;
 

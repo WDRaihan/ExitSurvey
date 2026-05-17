@@ -68,6 +68,7 @@ class ExitSurvey_Install {
 			sort_order          INT(11)             NOT NULL DEFAULT 0,
 			extra_field_enabled TINYINT(1)          NOT NULL DEFAULT 0,
 			extra_field_label   TEXT                         DEFAULT NULL,
+			segment_rules       TEXT                         DEFAULT NULL,
 			created_at          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			UNIQUE KEY  uq_key (question_key),
@@ -103,6 +104,12 @@ class ExitSurvey_Install {
 		}
 		if ( ! in_array( 'extra_field_label', $existing_cols ) ) {
 			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN extra_field_label TEXT DEFAULT NULL AFTER extra_field_enabled" );
+		}
+
+		// Add segment_rules column if missing
+		$seg_col = $wpdb->get_results( $wpdb->prepare( "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s AND COLUMN_NAME = 'segment_rules' AND TABLE_SCHEMA = %s", $q_table, DB_NAME ) );
+		if ( empty( $seg_col ) ) {
+			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN segment_rules TEXT DEFAULT NULL AFTER extra_field_label" );
 		}
 	}
 

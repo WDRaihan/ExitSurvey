@@ -81,6 +81,57 @@
 									<input type="text" name="q_extra_label[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $q['extra_field_label'] ?? 'Share your email for a discount code' ); ?>" class="regular-text" style="width: 100%;">
 								</div>
 							</div>
+
+							<?php
+							$seg = json_decode( $q['segment_rules'] ?? '{}', true ) ?: [];
+							$seg = wp_parse_args( $seg, [
+								'user_type'      => 'all',
+								'min_orders'     => 0,
+								'max_orders'     => 0,
+								'min_cart_value'  => 0,
+								'max_cart_value'  => 0,
+							] );
+							$has_rules = ( $seg['user_type'] !== 'all' || $seg['min_orders'] > 0 || $seg['max_orders'] > 0 || $seg['min_cart_value'] > 0 || $seg['max_cart_value'] > 0 );
+							?>
+							<div class="es-segment-settings" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+								<a href="#" class="es-segment-toggle">
+									<span class="dashicons dashicons-filter" style="font-size: 16px; width: 16px; height: 16px; vertical-align: text-bottom;"></span>
+									<?php echo esc_html__( 'Targeting Rules', 'exitsurvey' ); ?>
+									<?php if ( $has_rules ) : ?>
+										<span class="es-segment-badge"><?php echo esc_html__( 'Active', 'exitsurvey' ); ?></span>
+									<?php endif; ?>
+									<span class="es-segment-arrow">▼</span>
+								</a>
+								<div class="es-segment-body" style="<?php echo $has_rules ? '' : 'display: none;'; ?> margin-top: 12px;">
+									<div class="es-segment-grid">
+										<div class="es-segment-field">
+											<label><?php echo esc_html__( 'User Type', 'exitsurvey' ); ?></label>
+											<select name="q_seg_user_type[<?php echo (int) $row_index; ?>]">
+												<option value="all" <?php selected( $seg['user_type'], 'all' ); ?>><?php echo esc_html__( 'All Visitors', 'exitsurvey' ); ?></option>
+												<option value="guest" <?php selected( $seg['user_type'], 'guest' ); ?>><?php echo esc_html__( 'Guest Only', 'exitsurvey' ); ?></option>
+												<option value="logged_in" <?php selected( $seg['user_type'], 'logged_in' ); ?>><?php echo esc_html__( 'Logged-in Only', 'exitsurvey' ); ?></option>
+											</select>
+										</div>
+										<div class="es-segment-field">
+											<label><?php echo esc_html__( 'Min Orders', 'exitsurvey' ); ?></label>
+											<input type="number" name="q_seg_min_orders[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $seg['min_orders'] ); ?>" min="0" class="small-text">
+										</div>
+										<div class="es-segment-field">
+											<label><?php echo esc_html__( 'Max Orders', 'exitsurvey' ); ?></label>
+											<input type="number" name="q_seg_max_orders[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $seg['max_orders'] ); ?>" min="0" class="small-text">
+										</div>
+										<div class="es-segment-field">
+											<label><?php echo esc_html__( 'Min Cart Value', 'exitsurvey' ); ?></label>
+											<input type="number" name="q_seg_min_cart[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $seg['min_cart_value'] ); ?>" min="0" step="0.01" class="small-text">
+										</div>
+										<div class="es-segment-field">
+											<label><?php echo esc_html__( 'Max Cart Value', 'exitsurvey' ); ?></label>
+											<input type="number" name="q_seg_max_cart[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $seg['max_cart_value'] ); ?>" min="0" step="0.01" class="small-text">
+										</div>
+									</div>
+									<p class="description" style="margin-top: 8px; font-size: 12px; color: #94a3b8;"><?php echo esc_html__( 'Set 0 for no limit. Only matching visitors will see this question.', 'exitsurvey' ); ?></p>
+								</div>
+							</div>
 						</div>
 					</div>
 					<?php $row_index++; ?>
