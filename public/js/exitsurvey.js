@@ -92,7 +92,16 @@
     },
 
     /** Analyse history to determine best trigger type. */
-    resolveTrigger(cartCount) {
+    resolveTrigger(cartCount, currentPage) {
+      // When a current page context is provided (admin bypass), use it directly
+      if (currentPage) {
+        if (currentPage.isCheckout) return 'checkout';
+        if (currentPage.isCart || cartCount > 0) return 'cart';
+        if (currentPage.isProduct) return 'product';
+        if (currentPage.isShop) return 'shop';
+        return 'general';
+      }
+
       const history = this.load();
 
       const visitedCheckout = history.some(h => h.isCheckout);
@@ -172,6 +181,12 @@
       this.$overlay.fadeOut(200, () => {
         $('body').removeClass('es-no-scroll');
       });
+
+      // Reset history for admin bypass testing (fresh trigger on next page)
+      const bypass = CFG.isAdmin && CFG.adminBypass;
+      if (bypass) {
+        History.clear();
+      }
     },
 
     renderCart(cartData, trigger) {
@@ -381,12 +396,14 @@
       $.post(CFG.ajaxUrl, { action: 'exitsurvey_get_cart', nonce: CFG.nonce }, (res) => {
         const cartData   = res.success ? res.data : null;
         const cartCount  = cartData ? (cartData.count || 0) : 0;
-        const trigger    = History.resolveTrigger(cartCount);
+        const bypass     = CFG.isAdmin && CFG.adminBypass;
+        const trigger    = History.resolveTrigger(cartCount, bypass ? CFG.pageContext : null);
 
         Popup.open(trigger, cartData);
       }).fail(() => {
         // Open with no cart data on network failure
-        const trigger = History.resolveTrigger(0);
+        const bypass  = CFG.isAdmin && CFG.adminBypass;
+        const trigger = History.resolveTrigger(0, bypass ? CFG.pageContext : null);
         Popup.open(trigger, null);
       });
     },
