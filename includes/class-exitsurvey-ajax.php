@@ -61,6 +61,9 @@ class ExitSurvey_Ajax {
 			wp_send_json_error( [ 'message' => 'Could not save response.' ], 500 );
 		}
 
+		// Allow modules to react to saved response (e.g. email marketing)
+		do_action( 'exitsurvey_after_response_saved', $question_id, $answer, $wpdb->insert_id );
+
 		// Email notification
 		if ( ExitSurvey_Settings::get( 'email_notify' ) === 'yes' ) {
 			self::send_notification( $question_text, $answer, $trigger_type, $cart_value );

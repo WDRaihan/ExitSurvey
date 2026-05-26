@@ -149,6 +149,8 @@ class ExitSurvey_Admin {
 			}
 		}
 
+		do_action( 'exitsurvey_save_settings' );
+
 		wp_safe_redirect( add_query_arg( [ 'page' => 'exitsurvey-settings', 'saved' => '1' ], admin_url( 'admin.php' ) ) );
 		exit;
 	}
@@ -203,6 +205,8 @@ class ExitSurvey_Admin {
 				'extra_field_label'   => $extra_lb[ $i ] ?? 'Share your email for a discount code',
 				'segment_rules'       => $segment_rules,
 			], [ 'id' => $id ] );
+
+			do_action( 'exitsurvey_save_question', $id, $i );
 		}
 
 		wp_safe_redirect( add_query_arg( [ 'page' => 'exitsurvey-questions', 'saved' => '1' ], admin_url( 'admin.php' ) ) );

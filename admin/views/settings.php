@@ -116,6 +116,8 @@
 					</tr>
 				</table>
 			</div>
+
+			<?php do_action( 'exitsurvey_settings_sections' ); ?>
 		</div>
 
 		<p class="submit">

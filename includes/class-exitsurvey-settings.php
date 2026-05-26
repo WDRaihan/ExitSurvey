@@ -114,6 +114,8 @@ class ExitSurvey_Settings {
 			// Pass cart value rules to JS for client-side filtering
 			$row['segment_rules'] = $seg;
 
+			$row = apply_filters( 'exitsurvey_question_row_data', $row );
+
 			$grouped[ $row['trigger_type'] ][] = $row;
 		}
 		return $grouped;

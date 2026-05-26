@@ -111,6 +111,8 @@ class ExitSurvey_Install {
 		if ( empty( $seg_col ) ) {
 			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN segment_rules TEXT DEFAULT NULL AFTER extra_field_label" );
 		}
+
+		do_action( 'exitsurvey_database_update' );
 	}
 
 	/**

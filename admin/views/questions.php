@@ -80,6 +80,7 @@
 									<label style="display: block; margin-bottom: 5px; font-size: 13px;"><?php echo esc_html__( 'Extra Field Label:', 'exitsurvey' ); ?></label>
 									<input type="text" name="q_extra_label[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $q['extra_field_label'] ?? 'Share your email for a discount code' ); ?>" class="regular-text" style="width: 100%;">
 								</div>
+								<?php do_action( 'exitsurvey_question_extra_fields', $q, $row_index ); ?>
 							</div>
 
 							<?php

@@ -119,6 +119,7 @@ final class ExitSurvey {
 		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-responses.php';
 		require_once EXITSURVEY_PATH . 'admin/class-exitsurvey-admin.php';
 		require_once EXITSURVEY_PATH . 'public/class-exitsurvey-public.php';
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-email-marketing.php';
 	}
 
 	/**
@@ -132,6 +133,8 @@ final class ExitSurvey {
 		if ( is_admin() ) {
 			ExitSurvey_Admin::init();
 		}
+
+		ExitSurvey_Email_Marketing::init();
 	}
 
 	/**
