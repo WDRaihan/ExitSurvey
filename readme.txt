@@ -4,7 +4,7 @@ Tags: woocommerce, exit intent, survey, cart abandonment, feedback
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,6 +13,8 @@ Smart exit-intent survey for WooCommerce. Tracks user behavior, shows cart items
 == Description ==
 
 **ExitSurvey** detects when a visitor is about to leave your WooCommerce store and presents a beautiful, non-intrusive survey popup tailored to their exact browsing behavior.
+
+👉 Live Demo: [Try it here](https://exitsurvey.atplugins.com/)
 
 = How it works =
 

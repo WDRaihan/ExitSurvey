@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ExitSurvey - Smart Exit Survey for WooCommerce
  * Description: Tracks user browsing behavior and shows smart exit-intent surveys with cart data to recover abandoned carts.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      WDRaihan
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -28,7 +28,7 @@ final class ExitSurvey {
 	 *
 	 * @var string
 	 */
-	public $version = '1.0.0';
+	public $version = '1.0.1';
 
 	/**
 	 * The single instance of the class.

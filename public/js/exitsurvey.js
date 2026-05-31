@@ -95,8 +95,8 @@
     resolveTrigger(cartCount, currentPage) {
       // When a current page context is provided (admin bypass), use it directly
       if (currentPage) {
-        if (currentPage.isCheckout) return 'checkout';
-        if (currentPage.isCart || cartCount > 0) return 'cart';
+        if (currentPage.isCheckout && cartCount > 0) return 'checkout';
+        if (currentPage.isCart && cartCount > 0) return 'cart';
         if (currentPage.isProduct) return 'product';
         if (currentPage.isShop) return 'shop';
         return 'general';
@@ -108,7 +108,7 @@
       const visitedProduct  = history.some(h => h.isProduct);
       const visitedShop     = history.some(h => h.isShop);
 
-      if (visitedCheckout) return 'checkout';
+      if (visitedCheckout && cartCount > 0) return 'checkout';
       if (cartCount > 0)   return 'cart';
       if (visitedProduct)  return 'product';
       if (visitedShop)     return 'shop';
