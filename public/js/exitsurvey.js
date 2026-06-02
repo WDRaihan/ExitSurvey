@@ -161,8 +161,31 @@
       $(document).on('keydown', (e) => { if (e.key === 'Escape' && this.shown) this.close(); });
     },
 
+    hasMatchingQuestion(triggerType, cartData) {
+      const allQ   = CFG.questions || {};
+      let questions = allQ[triggerType] || allQ['general'] || [];
+
+      // Client-side cart value filtering
+      const cartValue = cartData ? parseFloat(cartData.raw_total || 0) : 0;
+      questions = questions.filter(q => {
+        const seg = q.segment_rules || {};
+        const minCart = parseFloat(seg.min_cart_value || 0);
+        const maxCart = parseFloat(seg.max_cart_value || 0);
+        if (minCart > 0 && cartValue < minCart) return false;
+        if (maxCart > 0 && cartValue > maxCart) return false;
+        return true;
+      });
+
+      return questions.length > 0;
+    },
+
     open(triggerType, cartData) {
       if (this.shown) return;
+
+      if (!this.hasMatchingQuestion(triggerType, cartData)) {
+        return;
+      }
+
       this.shown      = true;
       this.triggerType = triggerType;
       this.cartData   = cartData;

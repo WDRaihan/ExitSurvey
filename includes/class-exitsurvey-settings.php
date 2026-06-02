@@ -50,7 +50,7 @@ class ExitSurvey_Settings {
 			'brandingColor2'  => self::get( 'branding_color_2', '#3b82f6' ),
 			'extraFieldEnabled'     => self::get( 'extra_field_enabled', 'no' ) === 'yes',
 			'extraFieldLabel'       => self::get( 'extra_field_label', 'Share your email for a discount code' ),
-			'extraFieldPlaceholder' => self::get( 'extra_field_placeholder', 'Your email address...' ),
+			'extraFieldPlaceholder' => self::get( 'extra_field_placeholder', 'Enter value here...' ),
 			'submitLabel'     => self::get( 'submit_label', 'Submit & Continue' ),
 			'skipLabel'       => self::get( 'skip_label', 'No thanks, just leave' ),
 			'thankYouMsg'     => self::get( 'thank_you_msg', 'Thank you for your feedback! 🙏' ),
@@ -74,47 +74,15 @@ class ExitSurvey_Settings {
 			ARRAY_A
 		);
 
-		$is_logged_in = is_user_logged_in();
-		$order_count  = 0;
-		if ( $is_logged_in && function_exists( 'wc_get_customer_order_count' ) ) {
-			$order_count = wc_get_customer_order_count( get_current_user_id() );
-		}
-
 		$grouped = [];
 		foreach ( $rows as $row ) {
 			$row['options'] = $row['options'] ? json_decode( $row['options'], true ) : [];
 			$row['extra_field_enabled'] = (bool) $row['extra_field_enabled'];
 
-			// Parse segment rules
-			$seg = json_decode( $row['segment_rules'] ?? '{}', true ) ?: [];
-			$seg = wp_parse_args( $seg, [
-				'user_type'      => 'all',
-				'min_orders'     => 0,
-				'max_orders'     => 0,
-				'min_cart_value'  => 0,
-				'max_cart_value'  => 0,
-			] );
-
-			// Filter: User type
-			if ( 'guest' === $seg['user_type'] && $is_logged_in ) {
-				continue;
-			}
-			if ( 'logged_in' === $seg['user_type'] && ! $is_logged_in ) {
-				continue;
-			}
-
-			// Filter: Order history (only for logged-in users)
-			if ( $seg['min_orders'] > 0 && $order_count < $seg['min_orders'] ) {
-				continue;
-			}
-			if ( $seg['max_orders'] > 0 && $order_count > $seg['max_orders'] ) {
-				continue;
-			}
-
-			// Pass cart value rules to JS for client-side filtering
-			$row['segment_rules'] = $seg;
-
 			$row = apply_filters( 'exitsurvey_question_row_data', $row );
+			if ( ! $row ) {
+				continue;
+			}
 
 			$grouped[ $row['trigger_type'] ][] = $row;
 		}

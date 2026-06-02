@@ -106,12 +106,6 @@ class ExitSurvey_Install {
 			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN extra_field_label TEXT DEFAULT NULL AFTER extra_field_enabled" );
 		}
 
-		// Add segment_rules column if missing
-		$seg_col = $wpdb->get_results( $wpdb->prepare( "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s AND COLUMN_NAME = 'segment_rules' AND TABLE_SCHEMA = %s", $q_table, DB_NAME ) );
-		if ( empty( $seg_col ) ) {
-			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN segment_rules TEXT DEFAULT NULL AFTER extra_field_label" );
-		}
-
 		do_action( 'exitsurvey_database_update' );
 	}
 
