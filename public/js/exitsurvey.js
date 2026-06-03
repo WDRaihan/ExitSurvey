@@ -292,7 +292,7 @@
       const $extraContainer = $('#es-extra-field-container');
       if (this.question && this.question.extra_field_enabled) {
         $('#es-extra-field-label').text(this.question.extra_field_label || '');
-        $('#es-extra-field-input').attr('placeholder', CFG.extraFieldPlaceholder || '').val('');
+        $('#es-extra-field-input').attr('placeholder', this.question.extra_field_placeholder || '').val('');
         $extraContainer.show();
       } else {
         $extraContainer.hide();

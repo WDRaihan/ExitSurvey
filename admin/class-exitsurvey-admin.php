@@ -173,6 +173,7 @@ class ExitSurvey_Admin {
 		$orders   = array_map( 'absint', wp_unslash( $_POST['q_order'] ?? [] ) );
 		$extra_en = wp_unslash( $_POST['q_extra_enabled'] ?? [] );
 		$extra_lb = array_map( 'sanitize_text_field', wp_unslash( $_POST['q_extra_label'] ?? [] ) );
+		$extra_ph = array_map( 'sanitize_text_field', wp_unslash( $_POST['q_extra_placeholder'] ?? [] ) );
 
 		foreach ( $ids as $i => $id ) {
 			if ( ! $id ) {
@@ -190,6 +191,7 @@ class ExitSurvey_Admin {
 				'sort_order'    => $orders[ $i ] ?? 0,
 				'extra_field_enabled' => isset( $extra_en[ $i ] ) ? 1 : 0,
 				'extra_field_label'   => $extra_lb[ $i ] ?? 'Share your email for a discount code',
+				'extra_field_placeholder' => $extra_ph[ $i ] ?? '',
 			], [ 'id' => $id ] );
 
 			do_action( 'exitsurvey_save_question', $id, $i );

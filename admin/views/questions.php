@@ -77,8 +77,16 @@
 									<?php echo esc_html__( 'Enable additional text input for this question', 'exitsurvey' ); ?>
 								</label>
 								<div class="es-extra-field-label-wrap" style="margin-top: 10px; <?php echo ( $q['extra_field_enabled'] ?? 0 ) ? '' : 'display:none;'; ?>">
-									<label style="display: block; margin-bottom: 5px; font-size: 13px;"><?php echo esc_html__( 'Extra Field Label:', 'exitsurvey' ); ?></label>
-									<input type="text" name="q_extra_label[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $q['extra_field_label'] ?? 'Share your email for a discount code' ); ?>" class="regular-text" style="width: 100%;">
+									<div style="display: flex; gap: 15px; width: 100%;">
+										<div style="flex: 1;">
+											<label style="display: block; margin-bottom: 5px; font-size: 13px;"><?php echo esc_html__( 'Extra Field Label:', 'exitsurvey' ); ?></label>
+											<input type="text" name="q_extra_label[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $q['extra_field_label'] ?? 'Share your email for a discount code' ); ?>" class="regular-text" style="width: 100%;">
+										</div>
+										<div style="flex: 1;">
+											<label style="display: block; margin-bottom: 5px; font-size: 13px;"><?php echo esc_html__( 'Extra Field Placeholder:', 'exitsurvey' ); ?></label>
+											<input type="text" name="q_extra_placeholder[<?php echo (int) $row_index; ?>]" value="<?php echo esc_attr( $q['extra_field_placeholder'] ?? '' ); ?>" class="regular-text" style="width: 100%;" placeholder="<?php esc_attr_e( 'Placeholder (optional)', 'exitsurvey' ); ?>">
+										</div>
+									</div>
 								</div>
 								<?php do_action( 'exitsurvey_question_extra_fields', $q, $row_index ); ?>
 							</div>

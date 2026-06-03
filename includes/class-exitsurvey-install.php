@@ -68,6 +68,7 @@ class ExitSurvey_Install {
 			sort_order          INT(11)             NOT NULL DEFAULT 0,
 			extra_field_enabled TINYINT(1)          NOT NULL DEFAULT 0,
 			extra_field_label   TEXT                         DEFAULT NULL,
+			extra_field_placeholder TEXT                     DEFAULT NULL,
 			segment_rules       TEXT                         DEFAULT NULL,
 			created_at          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
@@ -94,9 +95,8 @@ class ExitSurvey_Install {
 			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN extra_info TEXT DEFAULT NULL AFTER answer" );
 		}
 
-		// Add extra_field columns to questions table if missing
 		$q_table = $wpdb->prefix . 'exitsurvey_questions';
-		$columns = $wpdb->get_results( $wpdb->prepare( "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s AND COLUMN_NAME IN ('extra_field_enabled', 'extra_field_label') AND TABLE_SCHEMA = %s", $q_table, DB_NAME ) );
+		$columns = $wpdb->get_results( $wpdb->prepare( "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s AND COLUMN_NAME IN ('extra_field_enabled', 'extra_field_label', 'extra_field_placeholder') AND TABLE_SCHEMA = %s", $q_table, DB_NAME ) );
 		$existing_cols = wp_list_pluck( $columns, 'COLUMN_NAME' );
 
 		if ( ! in_array( 'extra_field_enabled', $existing_cols ) ) {
@@ -104,6 +104,9 @@ class ExitSurvey_Install {
 		}
 		if ( ! in_array( 'extra_field_label', $existing_cols ) ) {
 			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN extra_field_label TEXT DEFAULT NULL AFTER extra_field_enabled" );
+		}
+		if ( ! in_array( 'extra_field_placeholder', $existing_cols ) ) {
+			$wpdb->query( "ALTER TABLE {$q_table} ADD COLUMN extra_field_placeholder TEXT DEFAULT NULL AFTER extra_field_label" );
 		}
 
 		do_action( 'exitsurvey_database_update' );
