@@ -121,6 +121,7 @@ final class ExitSurvey {
 		require_once EXITSURVEY_PATH . 'public/class-exitsurvey-public.php';
 		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-email-marketing.php';
 		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-targeting-rules.php';
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-zapier-webhook.php';
 	}
 
 	/**
@@ -137,6 +138,7 @@ final class ExitSurvey {
 
 		ExitSurvey_Email_Marketing::init();
 		ExitSurvey_Targeting_Rules::init();
+		ExitSurvey_Zapier_Webhook::init();
 	}
 
 	/**
