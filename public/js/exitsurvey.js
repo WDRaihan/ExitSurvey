@@ -135,6 +135,8 @@
     question:   null,
     answer:     null,
     triggerType: 'general',
+    couponCode:   null,
+    couponDiscount: null,
 
     init() {
       this.$overlay = $('#es-overlay');
@@ -201,6 +203,7 @@
 
     close() {
       this.shown = false;
+      CountdownTimer.stop();
       this.$overlay.fadeOut(200, () => {
         $('body').removeClass('es-no-scroll');
       });
@@ -333,7 +336,27 @@
       };
 
       $.post(CFG.ajaxUrl, payload)
-        .always(() => {
+        .done((res) => {
+          this.hideLoading();
+          // Capture coupon data if returned.
+          if (res && res.success && res.data) {
+            this.couponCode     = res.data.coupon_code     || null;
+            this.couponDiscount = res.data.coupon_discount || null;
+            this.couponExpiry   = res.data.coupon_expiry   || 0;
+
+            if (this.couponCode) {
+              try {
+                localStorage.setItem('es_coupon_code', this.couponCode);
+                if (this.couponDiscount) localStorage.setItem('es_coupon_discount', this.couponDiscount);
+                if (this.couponExpiry)   localStorage.setItem('es_coupon_expiry', this.couponExpiry);
+              } catch (e) {
+                // Ignore localStorage errors (e.g., incognito)
+              }
+            }
+          }
+          this.showThankYou();
+        })
+        .fail(() => {
           this.hideLoading();
           this.showThankYou();
         });
@@ -342,14 +365,42 @@
     showThankYou() {
       $('#es-survey-section').hide();
       $('#es-cart-section').hide();
-      const $ty = $('#es-thankyou').show();
+      $('#es-thankyou').show();
       $('#es-thankyou-msg').text(CFG.thankYouMsg || 'Thank you! 🙏');
+
+      // Show coupon banner if a code was returned.
+      if (this.couponCode) {
+        $('#es-coupon-code-text').text(this.couponCode);
+        if (this.couponDiscount) {
+          $('#es-coupon-discount').text('Save ' + this.couponDiscount + ' on your order!');
+        }
+        $('#es-coupon-banner').slideDown(300);
+        CountdownTimer.start(CFG.couponCountdownMinutes || 10);
+
+        // Copy to clipboard.
+        $('#es-copy-coupon-btn').off('click').on('click', () => {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(this.couponCode).then(() => {
+              $('#es-copy-icon').text('✅');
+              setTimeout(() => $('#es-copy-icon').text('📋'), 2000);
+            });
+          } else {
+            // Fallback for older browsers.
+            const $tmp = $('<textarea>').val(this.couponCode).appendTo('body').select();
+            document.execCommand('copy');
+            $tmp.remove();
+            $('#es-copy-icon').text('✅');
+            setTimeout(() => $('#es-copy-icon').text('📋'), 2000);
+          }
+        });
+      }
 
       if (this.cartData && this.cartData.checkout_url) {
         $('#es-checkout-btn').attr('href', this.cartData.checkout_url).show();
       }
-      // Auto-close after 4s
-      setTimeout(() => this.close(), 4000);
+      // Auto-close after 5s (or longer if coupon shown).
+      const autoClose = this.couponCode ? 8000 : 4000;
+      setTimeout(() => this.close(), autoClose);
     },
 
     showLoading() { $('#es-loading').show(); },
@@ -359,6 +410,147 @@
       this.$popup.addClass('es-popup--shake');
       setTimeout(() => this.$popup.removeClass('es-popup--shake'), 400);
     },
+  };
+
+  /* =========================================================
+   * COUNTDOWN TIMER
+   * ====================================================== */
+  const CountdownTimer = {
+    _interval: null,
+
+    /**
+     * Start a countdown of `minutes` minutes, updating #es-countdown-timer
+     * every second. When it hits 0:00, hide the countdown and show
+     * the expired message.
+     *
+     * @param {number} minutes
+     */
+    start(minutes) {
+      this.stop(); // Clear any previous timer.
+
+      let remaining = Math.max(1, Math.round(minutes)) * 60; // seconds
+
+      const $timer   = $('#es-countdown-timer');
+      const $wrap    = $('#es-countdown-wrap');
+      const $expired = $('#es-coupon-expired');
+
+      const tick = () => {
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        $timer.text(String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0'));
+
+        if (remaining <= 0) {
+          this.stop();
+          $wrap.hide();
+          $expired.fadeIn(400);
+        }
+        remaining--;
+      };
+
+      tick(); // Show immediately.
+      this._interval = setInterval(tick, 1000);
+    },
+
+    stop() {
+      if (this._interval) {
+        clearInterval(this._interval);
+        this._interval = null;
+      }
+    },
+  };
+
+  /* =========================================================
+   * PERSISTENT COUPON BANNER
+   * ====================================================== */
+  const PersistentCouponBanner = {
+    init() {
+      // If we are on the order received page, the user has checked out. Clear the coupon.
+      if (CFG.isOrderReceived) {
+        this.clearCoupon();
+        return;
+      }
+
+      // Check if a coupon is dismissed for the session.
+      if (sessionStorage.getItem('es_coupon_banner_dismissed')) {
+        return;
+      }
+
+      const code   = localStorage.getItem('es_coupon_code');
+      const expiry = parseInt(localStorage.getItem('es_coupon_expiry') || '0', 10);
+
+      if (!code) {
+        return;
+      }
+
+      // Check expiry (expiry is in seconds, Date.now() is in milliseconds)
+      if (expiry > 0 && (Date.now() / 1000) > expiry) {
+        this.clearCoupon();
+        return;
+      }
+
+      this.render(code);
+    },
+
+    clearCoupon() {
+      localStorage.removeItem('es_coupon_code');
+      localStorage.removeItem('es_coupon_discount');
+      localStorage.removeItem('es_coupon_expiry');
+    },
+
+    render(code) {
+      // Don't show if the main popup is currently visible.
+      if ($('#es-overlay').is(':visible')) {
+        return; // It will show on the next page load.
+      }
+
+      const $banner = $(`
+        <div class="es-floating-coupon-banner" id="es-floating-coupon-banner">
+          <div class="es-floating-coupon-banner__content">
+            <span class="es-floating-coupon-banner__icon">🎉</span>
+            <span class="es-floating-coupon-banner__text">
+              ${CFG.thankYouMsg ? 'Your discount is unlocked!' : 'Your discount is unlocked!'}
+            </span>
+            <div class="es-floating-coupon-banner__badge">
+              <span class="es-floating-coupon-banner__code">${code}</span>
+              <button class="es-floating-coupon-banner__copy" id="es-floating-copy-btn" aria-label="Copy coupon code">
+                <span id="es-floating-copy-icon">📋</span>
+              </button>
+            </div>
+          </div>
+          <button class="es-floating-coupon-banner__close" id="es-floating-close-btn" aria-label="Close">&times;</button>
+        </div>
+      `);
+
+      $('body').append($banner);
+
+      // Copy to clipboard
+      $('#es-floating-copy-btn').on('click', () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(code).then(() => {
+            $('#es-floating-copy-icon').text('✅');
+            setTimeout(() => $('#es-floating-copy-icon').text('📋'), 2000);
+          });
+        } else {
+          const $tmp = $('<textarea>').val(code).appendTo('body').select();
+          document.execCommand('copy');
+          $tmp.remove();
+          $('#es-floating-copy-icon').text('✅');
+          setTimeout(() => $('#es-floating-copy-icon').text('📋'), 2000);
+        }
+      });
+
+      // Dismiss banner
+      $('#es-floating-close-btn').on('click', () => {
+        $banner.removeClass('es-floating-coupon-banner--visible');
+        setTimeout(() => $banner.remove(), 400);
+        sessionStorage.setItem('es_coupon_banner_dismissed', '1');
+      });
+
+      // Slide it in slightly after page load
+      setTimeout(() => {
+        $banner.addClass('es-floating-coupon-banner--visible');
+      }, 500);
+    }
   };
 
   /* =========================================================
@@ -416,6 +608,13 @@
     init() {
       if (!CFG.enabled) return;
       if (isMobile() && !CFG.showOnMobile) return;
+
+      PersistentCouponBanner.init();
+
+      // Only check excluded pages / exit intent if popup is meant to trigger
+      if (CFG.excludedPages && CFG.excludedPages.length > 0) {
+        if (CFG.excludedPages.includes(window.location.pathname)) return;
+      }
 
       // Record current page visit
       History.record(CFG.pageContext || {});

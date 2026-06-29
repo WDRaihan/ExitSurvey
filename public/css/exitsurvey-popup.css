@@ -299,3 +299,228 @@ body.es-no-scroll { overflow: hidden; }
   .es-survey-section { padding: 16px 16px 0; }
   .es-cart-section { margin: 16px 16px 0; }
 }
+
+/* ============================================================
+   Coupon Banner
+   ============================================================ */
+@keyframes es-coupon-in {
+  from { opacity: 0; transform: translateY(10px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.es-coupon-banner {
+  margin: 16px 0 20px;
+  animation: es-coupon-in .35s cubic-bezier(.4,0,.2,1);
+}
+
+.es-coupon-banner__label {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+/* Badge row: code + copy button */
+.es-coupon-badge {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  border: 2.5px dashed #f59e0b;
+  background: #fefce8;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.es-coupon-badge__code {
+  flex: 1;
+  padding: 14px 16px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  color: #1e1b4b;
+  font-family: 'Courier New', Courier, monospace;
+  user-select: all;
+  cursor: text;
+  background: transparent;
+}
+
+.es-coupon-badge__copy {
+  padding: 0 16px;
+  background: #f59e0b;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 0 9px 9px 0;
+  transition: background .15s, transform .1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+}
+.es-coupon-badge__copy:hover { background: #d97706; }
+.es-coupon-badge__copy:active { transform: scale(.94); }
+
+/* Discount label */
+.es-coupon-discount {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Countdown timer */
+.es-countdown-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 0;
+}
+
+.es-countdown-label {
+  font-size: 13px;
+  color: #92400e;
+  font-weight: 500;
+}
+
+@keyframes es-pulse-timer {
+  0%,100% { opacity: 1; }
+  50% { opacity: .6; }
+}
+
+.es-countdown-timer {
+  font-size: 22px;
+  font-weight: 900;
+  color: #dc2626;
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: .05em;
+  animation: es-pulse-timer 1s ease-in-out infinite;
+  min-width: 56px;
+  text-align: center;
+}
+
+/* Expired message */
+.es-coupon-expired {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  background: #fff7ed;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid #fed7aa;
+}
+
+/* ============================================================
+   Persistent Floating Banner
+   ============================================================ */
+@keyframes es-banner-slide-up {
+  from { transform: translateY(150%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.es-floating-coupon-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 999999;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1);
+  padding: 16px 40px 16px 20px;
+  display: none; /* Initially hidden, shown via class */
+  align-items: center;
+  gap: 16px;
+  max-width: calc(100vw - 48px);
+}
+
+.es-floating-coupon-banner--visible {
+  display: flex;
+  animation: es-banner-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.es-floating-coupon-banner__content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.es-floating-coupon-banner__icon {
+  font-size: 20px;
+}
+
+.es-floating-coupon-banner__text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.es-floating-coupon-banner__badge {
+  display: flex;
+  align-items: stretch;
+  border: 2px dashed #f59e0b;
+  background: #fefce8;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.es-floating-coupon-banner__code {
+  padding: 4px 10px;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: #b45309;
+  letter-spacing: 0.05em;
+  background: transparent;
+}
+
+.es-floating-coupon-banner__copy {
+  background: #f59e0b;
+  border: none;
+  color: #fff;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.es-floating-coupon-banner__copy:hover {
+  background: #d97706;
+}
+
+.es-floating-coupon-banner__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.es-floating-coupon-banner__close:hover {
+  color: #475569;
+}
+
+@media (max-width: 600px) {
+  .es-floating-coupon-banner {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    max-width: none;
+    justify-content: center;
+  }
+}

@@ -61,15 +61,25 @@ class ExitSurvey_Ajax {
 			wp_send_json_error( [ 'message' => 'Could not save response.' ], 500 );
 		}
 
-		// Allow modules to react to saved response (e.g. email marketing)
-		do_action( 'exitsurvey_after_response_saved', $question_id, $answer, $wpdb->insert_id );
+		$insert_id = $wpdb->insert_id;
+
+		// Allow modules to react to saved response (e.g. email marketing, coupon generation).
+		do_action( 'exitsurvey_after_response_saved', $question_id, $answer, $insert_id );
 
 		// Email notification
 		if ( ExitSurvey_Settings::get( 'email_notify' ) === 'yes' ) {
 			self::send_notification( $question_text, $answer, $trigger_type, $cart_value );
 		}
 
-		wp_send_json_success( [ 'message' => 'Response saved.', 'id' => $wpdb->insert_id ] );
+		// Allow modules (e.g. coupon) to append extra data to the success response.
+		$response_data = apply_filters(
+			'exitsurvey_submit_response_data',
+			[ 'message' => 'Response saved.', 'id' => $insert_id ],
+			$question_id,
+			$insert_id
+		);
+
+		wp_send_json_success( $response_data );
 	}
 
 	/**

@@ -120,6 +120,26 @@ class ExitSurvey_Public {
 				<div class="es-thankyou" id="es-thankyou" style="display:none;">
 					<div class="es-thankyou__icon">🙏</div>
 					<p class="es-thankyou__msg" id="es-thankyou-msg"></p>
+
+					<!-- Coupon banner (shown when auto-coupon is enabled & generated) -->
+					<div id="es-coupon-banner" class="es-coupon-banner" style="display:none;" aria-live="polite">
+						<p class="es-coupon-banner__label">🎉 <?php echo esc_html__( "Here's your exclusive discount!", 'exitsurvey' ); ?></p>
+						<div class="es-coupon-badge" id="es-coupon-badge">
+							<span class="es-coupon-badge__code" id="es-coupon-code-text"></span>
+							<button class="es-coupon-badge__copy" id="es-copy-coupon-btn" aria-label="<?php esc_attr_e( 'Copy coupon code', 'exitsurvey' ); ?>">
+								<span id="es-copy-icon">📋</span>
+							</button>
+						</div>
+						<p class="es-coupon-discount" id="es-coupon-discount"></p>
+						<div class="es-countdown-wrap" id="es-countdown-wrap">
+							<span class="es-countdown-label"><?php echo esc_html__( 'Offer expires in', 'exitsurvey' ); ?></span>
+							<span class="es-countdown-timer" id="es-countdown-timer">10:00</span>
+						</div>
+						<p class="es-coupon-expired" id="es-coupon-expired" style="display:none;">
+							⏰ <?php echo esc_html__( "Offer expired — use the code above, it's still valid!", 'exitsurvey' ); ?>
+						</p>
+					</div>
+
 					<a href="#" class="es-btn es-btn--primary" id="es-checkout-btn" style="display:none;">
 						<?php echo esc_html__( 'Complete My Purchase →', 'exitsurvey' ); ?>
 					</a>

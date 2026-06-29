@@ -58,6 +58,9 @@ class ExitSurvey_Settings {
 			'nonce'           => wp_create_nonce( 'exitsurvey_nonce' ),
 			'currency'        => get_woocommerce_currency_symbol(),
 			'excludedPages'   => (array) self::get( 'excluded_pages', [] ),
+			'couponEnabled'          => get_option( 'exitsurvey_coupon_enabled', 'no' ) === 'yes',
+			'couponCountdownMinutes' => (int) get_option( 'exitsurvey_coupon_countdown_minutes', 10 ),
+			'isOrderReceived' => is_wc_endpoint_url( 'order-received' ),
 		];
 	}
 
@@ -84,7 +87,8 @@ class ExitSurvey_Settings {
 				continue;
 			}
 
-			$grouped[ $row['trigger_type'] ][] = $row;
+			$trigger = $row['trigger_type'] ?? 'general';
+			$grouped[ $trigger ][] = $row;
 		}
 		return $grouped;
 	}

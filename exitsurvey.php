@@ -2,8 +2,9 @@
 /**
  * Plugin Name: ExitSurvey - Smart Exit Survey for WooCommerce
  * Description: Tracks user browsing behavior and shows smart exit-intent surveys with cart data to recover abandoned carts.
- * Version:     1.0.1
- * Author:      WDRaihan
+ * Version:     1.1.0
+ * Author:      atPlugins
+ * Author URI: https://atplugins.com/
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain: exitsurvey
@@ -28,7 +29,7 @@ final class ExitSurvey {
 	 *
 	 * @var string
 	 */
-	public $version = '1.0.1';
+	public $version = '1.1.0';
 
 	/**
 	 * The single instance of the class.
@@ -122,6 +123,7 @@ final class ExitSurvey {
 		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-email-marketing.php';
 		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-targeting-rules.php';
 		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-zapier-webhook.php';
+		require_once EXITSURVEY_PATH . 'includes/class-exitsurvey-coupon.php';
 	}
 
 	/**
@@ -139,6 +141,7 @@ final class ExitSurvey {
 		ExitSurvey_Email_Marketing::init();
 		ExitSurvey_Targeting_Rules::init();
 		ExitSurvey_Zapier_Webhook::init();
+		ExitSurvey_Coupon::init();
 	}
 
 	/**
